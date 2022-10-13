@@ -66,24 +66,26 @@ function generateTestData() {
       'Siblings Testing on the Same Day': siblings,
     });
   }
-  testStudents.sort((a: Student, b: Student) => {
-    const scoreb = computeSortScore(b, testStudents);
-    const scorea = computeSortScore(a, testStudents);
+  testStudents.sort(sortStudents(testStudents));
+  console.log(JSON.stringify(testStudents));
+  return testStudents;
+}
+
+function sortStudents(students: Student[]) {
+  return (a: Student, b: Student) => {
+    const scoreb = computeSortScore(b, students);
+    const scorea = computeSortScore(a, students);
     if (scorea > scoreb) return -1;
     if (scorea < scoreb) return 1;
     if (!a['Siblings Testing on the Same Day'] || !b['Siblings Testing on the Same Day']) return 0;
     if (a['Siblings Testing on the Same Day'] > b['Siblings Testing on the Same Day']) return -1;
     if (a['Siblings Testing on the Same Day'] < b['Siblings Testing on the Same Day']) return 1;
     return 0;
-  });
-  return testStudents;
+  };
 }
 
 function App() {
-  studentTestData.sort(
-    (a: Student, b: Student) =>
-      computeSortScore(b, studentTestData) - computeSortScore(a, studentTestData)
-  );
+  studentTestData.sort(sortStudents(studentTestData));
   const testData = generateTestData();
   const [students, setStudents] = useState<Student[]>(testData);
   const [performanceRoomCount, setPerformanceRoomCount] = useState(6);
@@ -131,13 +133,17 @@ function App() {
   }
 
   function createAuralTests(): AuralTest[] {
+    const levels = ['1a', '1b', '2', '3', '4', '5'];
+    let levelIndex = 0;
     const tests = [];
     let time = morningStartTime;
+
     while (isBefore(time, morningEndTime)) {
       // skip over 10 am so they get a ~15 min break
       if (!(time.getHours() == 10 && time.getMinutes() === 0)) {
         for (let i = 0; i < auralRoomCount; i++) {
-          tests.push({ time, students: [] });
+          tests.push({ time, level: levels[levelIndex], students: [] });
+          levelIndex = (levelIndex + 1) % levels.length;
         }
       }
       time = addMinutes(time, auralTimeAllowance);
@@ -145,7 +151,8 @@ function App() {
     time = afternoonStartTime;
     while (isBefore(time, afternoonEndTime)) {
       for (let i = 0; i < auralRoomCount; i++) {
-        tests.push({ time, students: [] });
+        tests.push({ time, level: levels[levelIndex], students: [] });
+        levelIndex = (levelIndex + 1) % levels.length;
       }
       time = addMinutes(time, auralTimeAllowance);
     }
@@ -223,15 +230,18 @@ function App() {
       if (match) {
         match.students.push(student);
         student.auralTestTime = match.time;
-      } else {
-        const unassignedAural = auralsInTimeRange.find((x) => !x.level);
-        if (!unassignedAural) {
-          continue;
-        }
-        unassignedAural.level = student['SAT Level'];
-        unassignedAural.students.push(student);
-        student.auralTestTime = unassignedAural.time;
       }
+    }
+    for (const student of students.filter((x) => !x.auralTestTime)) {
+      if (!student.performanceTime) continue;
+      const emptyAuralsInTimeRange = auralTests.filter((x) => {
+        if (x.students.length) return false;
+        const difference = Math.abs(differenceInMinutes(student.performanceTime as Date, x.time));
+        return difference >= timeDifferenceMin && difference <= timeDifferenceMax;
+      });
+      if (!emptyAuralsInTimeRange) continue;
+      emptyAuralsInTimeRange[0].level = student['SAT Level'];
+      emptyAuralsInTimeRange[0].students.push(student);
     }
 
     setPerformanceRooms(perfRooms);
@@ -239,9 +249,7 @@ function App() {
   }
 
   const handleStudentsChange = (students: Student[]) => {
-    students.sort(
-      (a: Student, b: Student) => computeSortScore(b, students) - computeSortScore(a, students)
-    );
+    students.sort(sortStudents(students));
     setStudents(students);
   };
 

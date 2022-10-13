@@ -10,8 +10,11 @@ interface Props {
 }
 
 const Performances = ({ performanceRooms, morningEndTime, afternoonStartTime }: Props) => {
-  function showPerformanceError(p: SatPerformance, roomLevel: string) {
+  function showPerformanceLevelError(p: SatPerformance, roomLevel: string) {
     if (p.student['SAT Level'] !== roomLevel) return true;
+  }
+
+  function showPerformanceRequestError(p: SatPerformance) {
     if (p.student['Scheduling Requests'] === 'AM' && isAfter(p.time, morningEndTime)) return true;
     if (p.student['Scheduling Requests'] === 'PM' && isBefore(p.time, afternoonStartTime))
       return true;
@@ -51,13 +54,24 @@ const Performances = ({ performanceRooms, morningEndTime, afternoonStartTime }: 
                         </Typography>
                       </td>
                       <td>
+                        <Typography component="span">
+                          {p.student?.['Student First Name']} {p.student['Student Last Name']}
+                        </Typography>
+                      </td>
+                      <td>
                         <Typography
                           component="span"
-                          color={showPerformanceError(p, room.level) ? 'error' : ''}
+                          color={showPerformanceLevelError(p, room.level) ? 'error' : ''}
                         >
-                          {p.student?.['Student First Name']} {p.student['Student Last Name']} (
-                          {p.student?.['SAT Level']}, {p.student?.['Scheduling Requests'] || 'none'}
-                          )
+                          {p.student?.['SAT Level']}
+                        </Typography>
+                      </td>
+                      <td>
+                        <Typography
+                          component="span"
+                          color={showPerformanceRequestError(p) ? 'error' : ''}
+                        >
+                          {p.student?.['Scheduling Requests']}
                         </Typography>
                       </td>
                     </Box>

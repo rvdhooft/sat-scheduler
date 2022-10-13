@@ -20,11 +20,12 @@ interface Props {
 const FileUpload = ({ setStudents }: Props) => {
   const handleFileChange = async (file: any) => {
     const students = (await mapFileToStudents(file)) || [];
+    students.map((x) => (x['SAT Level'] = x['SAT Level'].toString())); // force levels to be strings
     setStudents(students);
   };
 
   return (
-    <Box sx={{ '& label': { height: '100%', px: 4 } }}>
+    <Box sx={{ '& label': { height: '100%', px: 4, minWidth: '23rem' } }}>
       <FileUploader handleChange={handleFileChange} name="file" types={['xlsx', 'xls']} />
     </Box>
   );
