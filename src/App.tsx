@@ -87,7 +87,8 @@ function sortStudents(students: Student[]) {
 function App() {
   studentTestData.sort(sortStudents(studentTestData));
   const testData = generateTestData();
-  const [students, setStudents] = useState<Student[]>(testData);
+  // const [students, setStudents] = useState<Student[]>(testData);
+  const [students, setStudents] = useState<Student[]>(studentTestData);
   const [performanceRoomCount, setPerformanceRoomCount] = useState(6);
   const [auralRoomCount, setAuralRoomCount] = useState(2);
   const [auralStudentLimit, setAuralStudentLimit] = useState(12);
@@ -203,7 +204,6 @@ function App() {
     const perfRooms = createPerformanceRooms();
     const auralTests = createAuralTests();
 
-    // Schedule performances
     for (const student of students) {
       // Schedule Performance
       const roomForLevel = perfRooms.find((x) => x.level === student['SAT Level']);
@@ -211,27 +211,26 @@ function App() {
       const nextAvailableTime = getNextAvailableTime(roomForLevel, student['Scheduling Requests']);
       roomForLevel.performances.push({ time: nextAvailableTime, student });
       student.performanceTime = nextAvailableTime;
-    }
 
-    // Schedule aural tests
-    for (const student of [...students].sort((a, b) =>
-      !a.performanceTime || !b.performanceTime
-        ? 0
-        : compareAsc(a.performanceTime, b.performanceTime)
-    )) {
-      if (!student.performanceTime) continue;
+      // Schedule Aural Test
       const auralsInTimeRange = auralTests.filter((x) => {
         const difference = Math.abs(differenceInMinutes(student.performanceTime as Date, x.time));
         return difference >= timeDifferenceMin && difference <= timeDifferenceMax;
       });
-      const match = auralsInTimeRange.find(
-        (x) => x.level === student['SAT Level'] && x.students.length <= auralStudentLimit
-      );
-      if (match) {
-        match.students.push(student);
-        student.auralTestTime = match.time;
+      const matches = auralsInTimeRange
+        .filter((x) => x.level === student['SAT Level'] && x.students.length <= auralStudentLimit)
+        .sort(
+          (a, b) =>
+            Math.abs(differenceInMinutes(a.time, student.performanceTime!)) -
+            Math.abs(differenceInMinutes(b.time, student.performanceTime!))
+        );
+      if (matches.length) {
+        matches[0].students.push(student);
+        student.auralTestTime = matches[0].time;
       }
     }
+
+    // Re-assign any unused aural test spots if needed
     for (const student of students.filter((x) => !x.auralTestTime)) {
       if (!student.performanceTime) continue;
       const emptyAuralsInTimeRange = auralTests.filter((x) => {
