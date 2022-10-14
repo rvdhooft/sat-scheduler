@@ -1,8 +1,9 @@
+import update from 'immutability-helper';
 import { ThemeProvider } from '@emotion/react';
 import { theme } from './theme';
 import { AppBar, Box, Button, Container, CssBaseline, Toolbar, Typography } from '@mui/material';
 import FileUpload from './components/FileUpload';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import studentTestData from './students';
 import { AuralTest, PerformanceRoom, SatPerformance, Student } from './models';
 import { compareAsc, addMinutes, isBefore, differenceInMinutes, isAfter } from 'date-fns';
@@ -11,6 +12,8 @@ import Students from './components/Students';
 import getSiblings from './utils/getSiblings';
 import Performances from './components/Performances';
 import AuralTests from './components/AuralTests';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 function computeSortScore(student: Student, students: Student[]) {
   const numSiblings = getSiblings(student, students).length;
@@ -67,7 +70,7 @@ function generateTestData() {
     });
   }
   testStudents.sort(sortStudents(testStudents));
-  console.log(JSON.stringify(testStudents));
+  // console.log(JSON.stringify(testStudents));
   return testStudents;
 }
 
@@ -85,10 +88,10 @@ function sortStudents(students: Student[]) {
 }
 
 function App() {
-  studentTestData.sort(sortStudents(studentTestData));
-  const testData = generateTestData();
+  const data = useMemo(() => studentTestData.sort(sortStudents(studentTestData)), []);
+  const testData = useMemo(() => generateTestData(), []);
   // const [students, setStudents] = useState<Student[]>(testData);
-  const [students, setStudents] = useState<Student[]>(studentTestData);
+  const [students, setStudents] = useState<Student[]>(data);
   const [performanceRoomCount, setPerformanceRoomCount] = useState(6);
   const [auralRoomCount, setAuralRoomCount] = useState(2);
   const [auralStudentLimit, setAuralStudentLimit] = useState(12);
@@ -169,33 +172,33 @@ function App() {
     );
   }
 
-  function getNextMorningTime(room: PerformanceRoom) {
-    const performances = room?.performances
+  function getNextMorningTime(performances: SatPerformance[]) {
+    const filtered = performances
       .filter((x) => x.time < morningEndTime)
       .sort((a, b) => compareAsc(b.time, a.time));
-    if (!performances?.length) return morningStartTime;
-    return getNextAvailableTimeFromPerformance(performances[0]);
+    if (!filtered?.length) return morningStartTime;
+    return getNextAvailableTimeFromPerformance(filtered[0]);
   }
 
-  function getNextAfternoonTime(room: PerformanceRoom) {
-    const performances = room?.performances
+  function getNextAfternoonTime(performances: SatPerformance[]) {
+    const filtered = performances
       .filter((x) => x.time >= afternoonStartTime)
       .sort((a, b) => compareAsc(b.time, a.time));
-    if (!performances?.length) return afternoonStartTime;
-    return getNextAvailableTimeFromPerformance(performances[0]);
+    if (!filtered?.length) return afternoonStartTime;
+    return getNextAvailableTimeFromPerformance(filtered[0]);
   }
 
-  function getNextAvailableTime(room: PerformanceRoom, request?: string) {
+  function getNextAvailableTime(performances: SatPerformance[], request?: string) {
     if (request === 'PM') {
-      return getNextAfternoonTime(room);
+      return getNextAfternoonTime(performances);
     }
-    let nextTime = getNextMorningTime(room);
+    let nextTime = getNextMorningTime(performances);
     if (nextTime.getHours() === 10 && nextTime.getMinutes() < 15) {
       // 15 minute break
       nextTime = addMinutes(nextTime, 15);
     }
     if (isAfter(nextTime, morningEndTime)) {
-      return getNextAfternoonTime(room);
+      return getNextAfternoonTime(performances);
     }
     return nextTime;
   }
@@ -208,7 +211,10 @@ function App() {
       // Schedule Performance
       const roomForLevel = perfRooms.find((x) => x.level === student['SAT Level']);
       if (!roomForLevel) continue;
-      const nextAvailableTime = getNextAvailableTime(roomForLevel, student['Scheduling Requests']);
+      const nextAvailableTime = getNextAvailableTime(
+        roomForLevel.performances,
+        student['Scheduling Requests']
+      );
       roomForLevel.performances.push({ time: nextAvailableTime, student });
       student.performanceTime = nextAvailableTime;
 
@@ -247,6 +253,45 @@ function App() {
     setAuralTests(auralTests);
   }
 
+  function getNextTime(lastPerformance: SatPerformance) {
+    let nextTime = getNextAvailableTimeFromPerformance(lastPerformance);
+    if (nextTime.getHours() === 10 && nextTime.getMinutes() < 15) {
+      // 15 minute break
+      nextTime = addMinutes(nextTime, 15);
+    }
+    if (isAfter(nextTime, morningEndTime) && isBefore(nextTime, afternoonStartTime)) {
+      return afternoonStartTime;
+    }
+    return nextTime;
+  }
+
+  function reassignTimes(performances: SatPerformance[]) {
+    for (let i = 0; i < performances.length; i++) {
+      if (i == 0) {
+        performances[i].time = morningStartTime;
+        performances[i].student.performanceTime = morningStartTime;
+        continue;
+      }
+
+      const nextTime = getNextTime(performances[i - 1]);
+      performances[i].time = nextTime;
+      performances[i].student.performanceTime = nextTime;
+    }
+  }
+
+  const updatePerformances = (room: PerformanceRoom) => {
+    reassignTimes(room.performances);
+    const index = performanceRooms.findIndex((x) => x.level === room.level);
+    setPerformanceRooms((prev: PerformanceRoom[]) =>
+      update(prev, {
+        $splice: [
+          [index, 1],
+          [index, 0, room],
+        ],
+      })
+    );
+  };
+
   const handleStudentsChange = (students: Student[]) => {
     students.sort(sortStudents(students));
     setStudents(students);
@@ -255,67 +300,70 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <main>
-        <AppBar position="static">
-          <Toolbar>
-            <Typography variant="h6" component="h1">
-              SAT Scheduler
-            </Typography>
-          </Toolbar>
-        </AppBar>
-        <Container maxWidth={false} sx={{ px: 10, py: 5 }}>
-          <Box display="flex">
-            <OptionFormFields
-              performanceRoomCount={performanceRoomCount}
-              setPerformanceRoomCount={setPerformanceRoomCount}
-              auralRoomCount={auralRoomCount}
-              setAuralRoomCount={setAuralRoomCount}
-              auralTimeAllowance={auralTimeAllowance}
-              setAuralTimeAllowance={setAuralTimeAllowance}
-              performanceTimeAllowance={performanceTimeAllowance}
-              setPerformanceTimeAllowance={setPerformanceTimeAllowance}
-              auralStudentLimit={auralStudentLimit}
-              setAuralStudentLimit={setAuralStudentLimit}
+      <DndProvider backend={HTML5Backend}>
+        <main>
+          <AppBar position="static">
+            <Toolbar>
+              <Typography variant="h6" component="h1">
+                SAT Scheduler
+              </Typography>
+            </Toolbar>
+          </AppBar>
+          <Container maxWidth={false} sx={{ px: 10, py: 5 }}>
+            <Box display="flex">
+              <OptionFormFields
+                performanceRoomCount={performanceRoomCount}
+                setPerformanceRoomCount={setPerformanceRoomCount}
+                auralRoomCount={auralRoomCount}
+                setAuralRoomCount={setAuralRoomCount}
+                auralTimeAllowance={auralTimeAllowance}
+                setAuralTimeAllowance={setAuralTimeAllowance}
+                performanceTimeAllowance={performanceTimeAllowance}
+                setPerformanceTimeAllowance={setPerformanceTimeAllowance}
+                auralStudentLimit={auralStudentLimit}
+                setAuralStudentLimit={setAuralStudentLimit}
+                timeDifferenceMin={timeDifferenceMin}
+                setTimeDifferenceMin={setTimeDifferenceMin}
+                timeDifferenceMax={timeDifferenceMax}
+                setTimeDifferenceMax={setTimeDifferenceMax}
+                siblingStartMax={siblingStartMax}
+                setSiblingStartMax={setSiblingStartMax}
+                morningStartTime={morningStartTime}
+                setMorningStartTime={setMorningStartTime}
+                morningEndTime={morningEndTime}
+                setMorningEndTime={setMorningEndTime}
+                afternoonStartTime={afternoonStartTime}
+                setAfternoonStartTime={setAfternoonStartTime}
+              />
+              <FileUpload setStudents={handleStudentsChange} />
+            </Box>
+            <Students
+              students={students}
+              hasSchedule={performanceRooms.length > 0}
               timeDifferenceMin={timeDifferenceMin}
-              setTimeDifferenceMin={setTimeDifferenceMin}
               timeDifferenceMax={timeDifferenceMax}
-              setTimeDifferenceMax={setTimeDifferenceMax}
               siblingStartMax={siblingStartMax}
-              setSiblingStartMax={setSiblingStartMax}
-              morningStartTime={morningStartTime}
-              setMorningStartTime={setMorningStartTime}
-              morningEndTime={morningEndTime}
-              setMorningEndTime={setMorningEndTime}
-              afternoonStartTime={afternoonStartTime}
-              setAfternoonStartTime={setAfternoonStartTime}
             />
-            <FileUpload setStudents={handleStudentsChange} />
-          </Box>
-          <Students
-            students={students}
-            hasSchedule={performanceRooms.length > 0}
-            timeDifferenceMin={timeDifferenceMin}
-            timeDifferenceMax={timeDifferenceMax}
-            siblingStartMax={siblingStartMax}
-          />
-          <Button variant="contained" sx={{ mt: 2 }} onClick={() => scheduleStudents()}>
-            Schedule
-          </Button>
-          <Box display="flex" gap={3} alignItems="flex-start" mt={4}>
-            <Performances
-              performanceRooms={performanceRooms}
-              morningEndTime={morningEndTime}
-              afternoonStartTime={afternoonStartTime}
-            />
-            <AuralTests
-              auralTests={auralTests}
-              auralStudentLimit={auralStudentLimit}
-              morningEndTime={morningEndTime}
-              afternoonStartTime={afternoonStartTime}
-            />
-          </Box>
-        </Container>
-      </main>
+            <Button variant="contained" sx={{ mt: 2 }} onClick={() => scheduleStudents()}>
+              Schedule
+            </Button>
+            <Box display="flex" gap={3} alignItems="flex-start" mt={4}>
+              <Performances
+                performanceRooms={performanceRooms}
+                morningEndTime={morningEndTime}
+                afternoonStartTime={afternoonStartTime}
+                updatePerformances={updatePerformances}
+              />
+              <AuralTests
+                auralTests={auralTests}
+                auralStudentLimit={auralStudentLimit}
+                morningEndTime={morningEndTime}
+                afternoonStartTime={afternoonStartTime}
+              />
+            </Box>
+          </Container>
+        </main>
+      </DndProvider>
     </ThemeProvider>
   );
 }
