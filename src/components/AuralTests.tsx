@@ -1,13 +1,15 @@
 import { Typography, Box } from '@mui/material';
-import { isAfter, isBefore } from 'date-fns';
-import { AuralTest, Student } from '../models';
-import formatTime from '../utils/formatTime';
+import { useEffect, useState } from 'react';
+import { AuralTest } from '../models';
+import AuralTestRow from './AuralTest';
+import update from 'immutability-helper';
 
 interface Props {
   auralTests: AuralTest[];
   auralStudentLimit: number;
   morningEndTime: Date;
   afternoonStartTime: Date;
+  updateAuralTests: (tests: AuralTest[]) => void;
 }
 
 const AuralTests = ({
@@ -15,22 +17,31 @@ const AuralTests = ({
   auralStudentLimit,
   morningEndTime,
   afternoonStartTime,
+  updateAuralTests,
 }: Props) => {
-  function showAuralError(student: Student, test: AuralTest) {
-    if (test.level !== student['SAT Level']) {
-      return true;
-    }
-    if (test.students.length > auralStudentLimit) {
-      return true;
-    }
-    if (student['Scheduling Requests'] === 'AM' && isAfter(test.time, morningEndTime)) return true;
-    if (student['Scheduling Requests'] === 'PM' && isBefore(test.time, afternoonStartTime))
-      return true;
+  const [tests, setTests] = useState<AuralTest[]>(auralTests);
 
-    return false;
-  }
+  useEffect(() => {
+    setTests(auralTests);
+  }, [auralTests]);
 
   if (!auralTests.length) return null;
+
+  const move = (studentName: string, dragTestIndex: number, hoverTestIndex: number) => {
+    const studentIndex = tests[dragTestIndex].students.findIndex(
+      (x) => studentName === `${x['Student First Name']} ${x['Student Last Name']}`
+    );
+    setTests(
+      update(tests, {
+        [hoverTestIndex]: {
+          students: { $push: [tests[dragTestIndex].students[studentIndex]] },
+        },
+        [dragTestIndex]: {
+          students: { $splice: [[studentIndex, 1]] },
+        },
+      })
+    );
+  };
 
   return (
     <Box flex={1}>
@@ -39,21 +50,17 @@ const AuralTests = ({
       </Typography>
       <table>
         <tbody>
-          {auralTests.map((test, i) => (
-            <Box component="tr" key={i} sx={{ '& td': { padding: '0.25rem 1rem' } }}>
-              <td>{formatTime(test.time)}</td>
-              <td>{test.level}</td>
-              <td>
-                <>
-                  {test.students.map((s, i) => (
-                    <Typography key={i} color={showAuralError(s, test) ? 'error' : ''}>
-                      {s['Student First Name']} {s['Student Last Name']} ({s['SAT Level']},{' '}
-                      {s['Scheduling Requests'] || 'none'})
-                    </Typography>
-                  ))}
-                </>
-              </td>
-            </Box>
+          {tests.map((test, i) => (
+            <AuralTestRow
+              key={i}
+              test={test}
+              index={i}
+              auralStudentLimit={auralStudentLimit}
+              morningEndTime={morningEndTime}
+              afternoonStartTime={afternoonStartTime}
+              move={move}
+              commitMove={() => updateAuralTests(tests)}
+            />
           ))}
         </tbody>
       </table>

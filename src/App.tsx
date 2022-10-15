@@ -88,10 +88,10 @@ function sortStudents(students: Student[]) {
 }
 
 function App() {
-  const data = useMemo(() => studentTestData.sort(sortStudents(studentTestData)), []);
+  // const data = useMemo(() => studentTestData.sort(sortStudents(studentTestData)), []);
   const testData = useMemo(() => generateTestData(), []);
-  // const [students, setStudents] = useState<Student[]>(testData);
-  const [students, setStudents] = useState<Student[]>(data);
+  const [students, setStudents] = useState<Student[]>(testData);
+  // const [students, setStudents] = useState<Student[]>(data);
   const [performanceRoomCount, setPerformanceRoomCount] = useState(6);
   const [auralRoomCount, setAuralRoomCount] = useState(2);
   const [auralStudentLimit, setAuralStudentLimit] = useState(12);
@@ -292,6 +292,15 @@ function App() {
     );
   };
 
+  const updateAuralTests = (tests: AuralTest[]) => {
+    for (const test of tests) {
+      for (const student of test.students) {
+        student.auralTestTime = test.time;
+      }
+    }
+    setAuralTests(tests);
+  };
+
   const handleStudentsChange = (students: Student[]) => {
     students.sort(sortStudents(students));
     setStudents(students);
@@ -359,6 +368,7 @@ function App() {
                 auralStudentLimit={auralStudentLimit}
                 morningEndTime={morningEndTime}
                 afternoonStartTime={afternoonStartTime}
+                updateAuralTests={updateAuralTests}
               />
             </Box>
           </Container>
