@@ -14,6 +14,7 @@ import Performances from './components/Performances';
 import AuralTests from './components/AuralTests';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import exportToFile from './utils/exportToFile';
 
 function computeSortScore(student: Student, students: Student[]) {
   const numSiblings = getSiblings(student, students).length;
@@ -353,9 +354,22 @@ function App() {
               timeDifferenceMax={timeDifferenceMax}
               siblingStartMax={siblingStartMax}
             />
-            <Button variant="contained" sx={{ mt: 2 }} onClick={() => scheduleStudents()}>
-              Schedule
-            </Button>
+            <Box mt={2}>
+              <Button variant="contained" onClick={() => scheduleStudents()}>
+                Schedule
+              </Button>
+              {performanceRooms.length > 0 && (
+                <Button
+                  variant="contained"
+                  sx={{ ml: 3 }}
+                  onClick={() =>
+                    exportToFile(students, performanceRooms, auralTests, auralRoomCount)
+                  }
+                >
+                  Export
+                </Button>
+              )}
+            </Box>
             <Box display="flex" gap={3} alignItems="flex-start" mt={4}>
               <Performances
                 performanceRooms={performanceRooms}
