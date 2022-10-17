@@ -25,7 +25,7 @@ const FileUpload = ({ setStudents }: Props) => {
   };
 
   return (
-    <Box sx={{ '& label': { height: '100%', px: 4, minWidth: '23rem' } }}>
+    <Box flex={1} mb={2} sx={{ '& label': { height: '100%', px: 4, minWidth: '23rem' } }}>
       <FileUploader handleChange={handleFileChange} name="file" types={['xlsx', 'xls']} />
     </Box>
   );

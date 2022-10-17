@@ -3,96 +3,29 @@ import { ThemeProvider } from '@emotion/react';
 import { theme } from './theme';
 import { AppBar, Box, Button, Container, CssBaseline, Toolbar, Typography } from '@mui/material';
 import FileUpload from './components/FileUpload';
-import { useMemo, useState } from 'react';
-import studentTestData from './students';
+import { useEffect, useState } from 'react';
 import { AuralTest, PerformanceRoom, SatPerformance, Student } from './models';
 import { compareAsc, addMinutes, isBefore, differenceInMinutes, isAfter } from 'date-fns';
 import OptionFormFields from './components/OptionFormFields';
 import Students from './components/Students';
-import getSiblings from './utils/getSiblings';
 import Performances from './components/Performances';
 import AuralTests from './components/AuralTests';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import exportToFile from './utils/exportToFile';
-
-function computeSortScore(student: Student, students: Student[]) {
-  const numSiblings = getSiblings(student, students).length;
-  return student['Siblings Testing on the Same Day'] && student['Scheduling Requests']
-    ? 3 + numSiblings
-    : student['Siblings Testing on the Same Day']
-    ? 2 + numSiblings
-    : student['Scheduling Requests']
-    ? 1
-    : 0;
-}
-
-function getRandomInt(min: number, max: number) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function generateTestData() {
-  const testStudents: Student[] = [];
-  let siblings = undefined;
-  let siblingRequest = undefined;
-  let siblingCount = 0;
-  const total = 200;
-  for (let i = 0; i < total; i++) {
-    const randomRequest = getRandomInt(1, 5);
-    const randomLevel = getRandomInt(0, 5);
-    if (siblingCount == 0) {
-      siblings = undefined;
-      siblingRequest = undefined;
-    }
-    if (siblingCount > 0) {
-      siblingCount--;
-    } else if (i < total - 2) {
-      const randomSiblings = getRandomInt(0, 7);
-      if (randomSiblings === 5) {
-        siblingCount = getRandomInt(1, 2);
-        siblings = `Siblings ${i}`;
-        siblingRequest = randomRequest;
-      }
-    }
-
-    testStudents.push({
-      'Student Last Name': 'Student ' + i,
-      'Student First Name': 'Test',
-      'SAT Level': randomLevel === 0 ? '1a' : randomLevel === 1 ? '1b' : randomLevel.toString(),
-      'Scheduling Requests':
-        (siblingRequest || randomRequest) === 1
-          ? 'AM'
-          : (siblingRequest || randomRequest) === 2
-          ? 'PM'
-          : undefined,
-      'Siblings Testing on the Same Day': siblings,
-    });
-  }
-  testStudents.sort(sortStudents(testStudents));
-  // console.log(JSON.stringify(testStudents));
-  return testStudents;
-}
-
-function sortStudents(students: Student[]) {
-  return (a: Student, b: Student) => {
-    const scoreb = computeSortScore(b, students);
-    const scorea = computeSortScore(a, students);
-    if (scorea > scoreb) return -1;
-    if (scorea < scoreb) return 1;
-    if (!a['Siblings Testing on the Same Day'] || !b['Siblings Testing on the Same Day']) return 0;
-    if (a['Siblings Testing on the Same Day'] > b['Siblings Testing on the Same Day']) return -1;
-    if (a['Siblings Testing on the Same Day'] < b['Siblings Testing on the Same Day']) return 1;
-    return 0;
-  };
-}
+import sortStudents from './utils/sortStudents';
+import generateTestData from './utils/generateTestData';
+import {
+  getAuralTests,
+  getPerformanceRooms,
+  getStudents,
+  saveAuralTests,
+  savePerformanceRooms,
+  saveStudents,
+} from './utils/localStorage';
 
 function App() {
-  // const data = useMemo(() => studentTestData.sort(sortStudents(studentTestData)), []);
-  const testData = useMemo(() => generateTestData(), []);
-  const [students, setStudents] = useState<Student[]>(testData);
-  // const [students, setStudents] = useState<Student[]>(data);
+  const [students, setStudents] = useState<Student[]>(getStudents() || []);
   const [performanceRoomCount, setPerformanceRoomCount] = useState(6);
   const [auralRoomCount, setAuralRoomCount] = useState(2);
   const [auralStudentLimit, setAuralStudentLimit] = useState(12);
@@ -120,8 +53,22 @@ function App() {
   const [afternoonStartTime, setAfternoonStartTime] = useState(new Date('2023-01-01T13:00:00'));
   const afternoonEndTime = new Date('2023-01-01T16:00:00');
 
-  const [performanceRooms, setPerformanceRooms] = useState<PerformanceRoom[]>([]);
-  const [auralTests, setAuralTests] = useState<AuralTest[]>([]);
+  const [performanceRooms, setPerformanceRooms] = useState<PerformanceRoom[]>(
+    getPerformanceRooms() || []
+  );
+  const [auralTests, setAuralTests] = useState<AuralTest[]>(getAuralTests() || []);
+
+  useEffect(() => {
+    saveStudents(students);
+  }, [students]);
+
+  useEffect(() => {
+    savePerformanceRooms(performanceRooms);
+  }, [performanceRooms]);
+
+  useEffect(() => {
+    saveAuralTests(auralTests);
+  }, [auralTests]);
 
   function createPerformanceRooms() {
     // todo: find distribution of levels
@@ -248,10 +195,12 @@ function App() {
       if (!emptyAuralsInTimeRange) continue;
       emptyAuralsInTimeRange[0].level = student['SAT Level'];
       emptyAuralsInTimeRange[0].students.push(student);
+      student.auralTestTime = emptyAuralsInTimeRange[0].time;
     }
 
     setPerformanceRooms(perfRooms);
     setAuralTests(auralTests);
+    saveStudents(students);
   }
 
   function getNextTime(lastPerformance: SatPerformance) {
@@ -267,17 +216,29 @@ function App() {
   }
 
   function reassignTimes(performances: SatPerformance[]) {
+    const updatedStudents = [...students];
     for (let i = 0; i < performances.length; i++) {
       if (i == 0) {
         performances[i].time = morningStartTime;
-        performances[i].student.performanceTime = morningStartTime;
+        const student = updatedStudents.find(
+          (x) =>
+            x['Student First Name'] == performances[i].student['Student First Name'] &&
+            x['Student Last Name'] === performances[i].student['Student Last Name']
+        );
+        if (student) student.performanceTime = morningStartTime;
         continue;
       }
 
       const nextTime = getNextTime(performances[i - 1]);
       performances[i].time = nextTime;
-      performances[i].student.performanceTime = nextTime;
+      const student = updatedStudents.find(
+        (x) =>
+          x['Student First Name'] == performances[i].student['Student First Name'] &&
+          x['Student Last Name'] === performances[i].student['Student Last Name']
+      );
+      if (student) student.performanceTime = nextTime;
     }
+    setStudents(updatedStudents);
   }
 
   const updatePerformances = (room: PerformanceRoom) => {
@@ -305,6 +266,12 @@ function App() {
   const handleStudentsChange = (students: Student[]) => {
     students.sort(sortStudents(students));
     setStudents(students);
+  };
+
+  const generateTestStudents = () => {
+    setStudents(generateTestData());
+    setPerformanceRooms([]);
+    setAuralTests([]);
   };
 
   return (
@@ -345,7 +312,12 @@ function App() {
                 afternoonStartTime={afternoonStartTime}
                 setAfternoonStartTime={setAfternoonStartTime}
               />
-              <FileUpload setStudents={handleStudentsChange} />
+              <Box display="flex" flexDirection="column">
+                <FileUpload setStudents={handleStudentsChange} />
+                <Button color="secondary" onClick={generateTestStudents}>
+                  Generate Random Students
+                </Button>
+              </Box>
             </Box>
             <Students
               students={students}
@@ -355,9 +327,11 @@ function App() {
               siblingStartMax={siblingStartMax}
             />
             <Box mt={2}>
-              <Button variant="contained" onClick={() => scheduleStudents()}>
-                Schedule
-              </Button>
+              {students.length > 0 && (
+                <Button variant="contained" onClick={() => scheduleStudents()}>
+                  Schedule
+                </Button>
+              )}
               {performanceRooms.length > 0 && (
                 <Button
                   variant="contained"

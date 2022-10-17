@@ -19,6 +19,8 @@ const Students = ({
   timeDifferenceMin,
   timeDifferenceMax,
 }: Props) => {
+  if (!students.length) return null;
+
   function showSiblingStartTimeDiffError(student: Student) {
     const diff = getSiblingStartDiffMax(student);
     return diff && diff > siblingStartMax;
