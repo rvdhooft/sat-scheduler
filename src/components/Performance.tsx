@@ -77,13 +77,12 @@ const PerformanceRow = ({
   drag(drop(ref));
 
   function showPerformanceLevelError(p: SatPerformance, roomLevel: string) {
-    if (p.student['SAT Level'] !== roomLevel) return true;
+    if (p.student.level !== roomLevel) return true;
   }
 
   function showPerformanceRequestError(p: SatPerformance) {
-    if (p.student['Scheduling Requests'] === 'AM' && isAfter(p.time, morningEndTime)) return true;
-    if (p.student['Scheduling Requests'] === 'PM' && isBefore(p.time, afternoonStartTime))
-      return true;
+    if (p.student.request === 'AM' && isAfter(p.time, morningEndTime)) return true;
+    if (p.student.request === 'PM' && isBefore(p.time, afternoonStartTime)) return true;
 
     return false;
   }
@@ -108,16 +107,14 @@ const PerformanceRow = ({
         </Typography>
       </td>
       <td>
-        <Typography component="span">
-          {performance.student?.['Student First Name']} {performance.student['Student Last Name']}
-        </Typography>
+        <Typography component="span">{performance.student?.fullName}</Typography>
       </td>
       <td>
         <Typography
           component="span"
           color={showPerformanceLevelError(performance, room.level) ? 'error' : ''}
         >
-          {performance.student?.['SAT Level']}
+          {performance.student?.level}
         </Typography>
       </td>
       <td>
@@ -125,7 +122,7 @@ const PerformanceRow = ({
           component="span"
           color={showPerformanceRequestError(performance) ? 'error' : ''}
         >
-          {performance.student?.['Scheduling Requests']}
+          {performance.student?.request}
         </Typography>
       </td>
     </Box>

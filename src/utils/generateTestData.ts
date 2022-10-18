@@ -1,5 +1,6 @@
 import { Student } from '../models';
 import sortStudents from './sortStudents';
+import { v4 as uuidv4 } from 'uuid';
 
 function getRandomInt(min: number, max: number) {
   min = Math.ceil(min);
@@ -32,16 +33,18 @@ export default function generateTestData() {
     }
 
     testStudents.push({
-      'Student Last Name': 'Student ' + i,
-      'Student First Name': 'Test',
-      'SAT Level': randomLevel === 0 ? '1a' : randomLevel === 1 ? '1b' : randomLevel.toString(),
-      'Scheduling Requests':
+      id: uuidv4(),
+      last: 'Student ' + i,
+      first: 'Test',
+      fullName: 'Test Student ' + i,
+      level: randomLevel === 0 ? '1a' : randomLevel === 1 ? '1b' : randomLevel.toString(),
+      request:
         (siblingRequest || randomRequest) === 1
           ? 'AM'
           : (siblingRequest || randomRequest) === 2
           ? 'PM'
           : undefined,
-      'Siblings Testing on the Same Day': siblings,
+      siblings: siblings,
     });
   }
   testStudents.sort(sortStudents(testStudents));

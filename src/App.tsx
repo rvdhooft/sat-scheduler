@@ -114,9 +114,7 @@ function App() {
   function getNextAvailableTimeFromPerformance(performance: SatPerformance) {
     return addMinutes(
       performance.time,
-      performanceTimeAllowance[
-        performance.student['SAT Level'] as keyof typeof performanceTimeAllowance
-      ]
+      performanceTimeAllowance[performance.student.level as keyof typeof performanceTimeAllowance]
     );
   }
 
@@ -157,14 +155,12 @@ function App() {
 
     for (const student of students) {
       // Schedule Performance
-      const roomForLevel = perfRooms.find((x) => x.level === student['SAT Level']);
+      const roomForLevel = perfRooms.find((x) => x.level === student.level);
       if (!roomForLevel) continue;
-      const nextAvailableTime = getNextAvailableTime(
-        roomForLevel.performances,
-        student['Scheduling Requests']
-      );
+      const nextAvailableTime = getNextAvailableTime(roomForLevel.performances, student.request);
       roomForLevel.performances.push({ time: nextAvailableTime, student });
       student.performanceTime = nextAvailableTime;
+      student.performanceRoom = roomForLevel.level;
 
       // Schedule Aural Test
       const auralsInTimeRange = auralTests.filter((x) => {
@@ -172,7 +168,7 @@ function App() {
         return difference >= timeDifferenceMin && difference <= timeDifferenceMax;
       });
       const matches = auralsInTimeRange
-        .filter((x) => x.level === student['SAT Level'] && x.students.length <= auralStudentLimit)
+        .filter((x) => x.level === student.level && x.students.length <= auralStudentLimit)
         .sort(
           (a, b) =>
             Math.abs(differenceInMinutes(a.time, student.performanceTime!)) -
@@ -193,7 +189,7 @@ function App() {
         return difference >= timeDifferenceMin && difference <= timeDifferenceMax;
       });
       if (!emptyAuralsInTimeRange) continue;
-      emptyAuralsInTimeRange[0].level = student['SAT Level'];
+      emptyAuralsInTimeRange[0].level = student.level;
       emptyAuralsInTimeRange[0].students.push(student);
       student.auralTestTime = emptyAuralsInTimeRange[0].time;
     }
@@ -220,22 +216,14 @@ function App() {
     for (let i = 0; i < performances.length; i++) {
       if (i == 0) {
         performances[i].time = morningStartTime;
-        const student = updatedStudents.find(
-          (x) =>
-            x['Student First Name'] == performances[i].student['Student First Name'] &&
-            x['Student Last Name'] === performances[i].student['Student Last Name']
-        );
+        const student = updatedStudents.find((x) => x.id === performances[i].student.id);
         if (student) student.performanceTime = morningStartTime;
         continue;
       }
 
       const nextTime = getNextTime(performances[i - 1]);
       performances[i].time = nextTime;
-      const student = updatedStudents.find(
-        (x) =>
-          x['Student First Name'] == performances[i].student['Student First Name'] &&
-          x['Student Last Name'] === performances[i].student['Student Last Name']
-      );
+      const student = updatedStudents.find((x) => x.id === performances[i].student.id);
       if (student) student.performanceTime = nextTime;
     }
     setStudents(updatedStudents);
@@ -255,17 +243,22 @@ function App() {
   };
 
   const updateAuralTests = (tests: AuralTest[]) => {
+    const updatedStudents = [...students];
     for (const test of tests) {
-      for (const student of test.students) {
-        student.auralTestTime = test.time;
+      for (const s of test.students) {
+        const student = updatedStudents.find((x) => x.id === s.id);
+        if (student) student.auralTestTime = test.time;
       }
     }
+    setStudents(updatedStudents);
     setAuralTests(tests);
   };
 
   const handleStudentsChange = (students: Student[]) => {
     students.sort(sortStudents(students));
     setStudents(students);
+    setPerformanceRooms([]);
+    setAuralTests([]);
   };
 
   const generateTestStudents = () => {

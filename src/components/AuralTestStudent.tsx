@@ -18,7 +18,7 @@ const AuralTestStudent = ({ student, index, testIndex, showError }: Props) => {
     item: () => {
       return {
         index,
-        studentName: `${student['Student First Name']} ${student['Student Last Name']}`,
+        id: student.id,
         testIndex,
       };
     },
@@ -31,8 +31,7 @@ const AuralTestStudent = ({ student, index, testIndex, showError }: Props) => {
 
   return (
     <Typography ref={ref} color={showError ? 'error' : ''} sx={{ opacity, cursor: 'move' }}>
-      {student['Student First Name']} {student['Student Last Name']} ({student['SAT Level']},{' '}
-      {student['Scheduling Requests'] || 'none'})
+      {student.fullName} ({student.level}, {student.request || 'none'})
     </Typography>
   );
 };

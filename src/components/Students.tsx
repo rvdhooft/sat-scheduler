@@ -35,12 +35,7 @@ const Students = ({
   }
 
   function getSiblingStartDiffMax(student: Student) {
-    if (
-      !student['Siblings Testing on the Same Day'] ||
-      !student.performanceTime ||
-      !student.auralTestTime
-    )
-      return null;
+    if (!student.siblings || !student.performanceTime || !student.auralTestTime) return null;
 
     const startTime = isBefore(student.auralTestTime, student.performanceTime)
       ? student.auralTestTime
@@ -80,12 +75,10 @@ const Students = ({
         <tbody>
           {students.map((student, i) => (
             <Box component="tr" key={i} sx={{ '& td': { padding: '0.25rem 1rem' } }}>
-              <td>
-                {student['Student First Name']} {student['Student Last Name']}
-              </td>
-              <td>{student['SAT Level']}</td>
-              <td>{student['Scheduling Requests']}</td>
-              <td>{student['Siblings Testing on the Same Day']}</td>
+              <td>{student.fullName}</td>
+              <td>{student.level}</td>
+              <td>{student.request}</td>
+              <td>{student.siblings}</td>
               {hasSchedule && (
                 <>
                   <td>

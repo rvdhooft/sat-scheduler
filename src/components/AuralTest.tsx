@@ -13,14 +13,14 @@ interface Props {
   auralStudentLimit: number;
   morningEndTime: Date;
   afternoonStartTime: Date;
-  move: (studentName: string, dragTestIndex: number, hoverTestIndex: number) => void;
+  move: (studentId: string, dragTestIndex: number, hoverTestIndex: number) => void;
   commitMove: () => void;
 }
 
 interface DragItem {
   index: number;
   testIndex: number;
-  studentName: string;
+  id: string;
   type: string;
 }
 
@@ -36,15 +36,14 @@ const AuralTestRow = ({
   const ref = useRef<HTMLTableRowElement>(null);
 
   function showAuralError(student: Student) {
-    if (test.level !== student['SAT Level']) {
+    if (test.level !== student.level) {
       return true;
     }
     if (test.students.length > auralStudentLimit) {
       return true;
     }
-    if (student['Scheduling Requests'] === 'AM' && isAfter(test.time, morningEndTime)) return true;
-    if (student['Scheduling Requests'] === 'PM' && isBefore(test.time, afternoonStartTime))
-      return true;
+    if (student.request === 'AM' && isAfter(test.time, morningEndTime)) return true;
+    if (student.request === 'PM' && isBefore(test.time, afternoonStartTime)) return true;
 
     return false;
   }
@@ -76,7 +75,7 @@ const AuralTestRow = ({
       if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
         return;
       }
-      move(item.studentName, item.testIndex, index);
+      move(item.id, item.testIndex, index);
       item.testIndex = hoverIndex;
     },
   });
@@ -93,7 +92,7 @@ const AuralTestRow = ({
               student={s}
               testIndex={index}
               index={j}
-              key={`${s['Student First Name']} ${s['Student Last Name']}`}
+              key={s.id}
               showError={showAuralError(s)}
             />
           ))}

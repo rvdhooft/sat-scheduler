@@ -42,7 +42,7 @@ const PerformanceRoomTable = ({
         <tbody>
           {performances.map((p, j) => (
             <PerformanceRow
-              key={`${p.student['Student First Name']} ${p.student['Student Last Name']}`}
+              key={p.student.id}
               index={j}
               performance={p}
               room={room}

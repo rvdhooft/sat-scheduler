@@ -27,10 +27,8 @@ const AuralTests = ({
 
   if (!auralTests.length) return null;
 
-  const move = (studentName: string, dragTestIndex: number, hoverTestIndex: number) => {
-    const studentIndex = tests[dragTestIndex].students.findIndex(
-      (x) => studentName === `${x['Student First Name']} ${x['Student Last Name']}`
-    );
+  const move = (studentId: string, dragTestIndex: number, hoverTestIndex: number) => {
+    const studentIndex = tests[dragTestIndex].students.findIndex((x) => studentId === x.id);
     setTests(
       update(tests, {
         [hoverTestIndex]: {

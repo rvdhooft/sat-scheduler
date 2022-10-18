@@ -20,11 +20,13 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0",
     "react-drag-drop-files": "^2.3.7",
+    "uuid": "^9.0.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
     "@typescript-eslint/parser": "^5.39.0",
     "@vitejs/plugin-react": "^2.1.0",

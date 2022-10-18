@@ -3,11 +3,11 @@ import getSiblings from './getSiblings';
 
 function computeSortScore(student: Student, students: Student[]) {
   const numSiblings = getSiblings(student, students).length;
-  return student['Siblings Testing on the Same Day'] && student['Scheduling Requests']
+  return student.siblings && student.request
     ? 3 + numSiblings
-    : student['Siblings Testing on the Same Day']
+    : student.siblings
     ? 2 + numSiblings
-    : student['Scheduling Requests']
+    : student.request
     ? 1
     : 0;
 }
@@ -18,9 +18,9 @@ export default function sortStudents(students: Student[]) {
     const scorea = computeSortScore(a, students);
     if (scorea > scoreb) return -1;
     if (scorea < scoreb) return 1;
-    if (!a['Siblings Testing on the Same Day'] || !b['Siblings Testing on the Same Day']) return 0;
-    if (a['Siblings Testing on the Same Day'] > b['Siblings Testing on the Same Day']) return -1;
-    if (a['Siblings Testing on the Same Day'] < b['Siblings Testing on the Same Day']) return 1;
+    if (!a.siblings || !b.siblings) return 0;
+    if (a.siblings > b.siblings) return -1;
+    if (a.siblings < b.siblings) return 1;
     return 0;
   };
 }

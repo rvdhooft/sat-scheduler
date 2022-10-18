@@ -2,7 +2,8 @@ import { Box } from '@mui/material';
 import { Dispatch } from 'react';
 import { FileUploader } from 'react-drag-drop-files';
 import { read, utils } from 'xlsx';
-import { Student } from '../models';
+import { Student, StudentFileModel } from '../models';
+import { mapFromFileModels } from '../utils/studentMappingUtils';
 
 async function mapFileToStudents(file: File) {
   if (!file) return;
@@ -10,7 +11,8 @@ async function mapFileToStudents(file: File) {
   const workbook = read(await file?.arrayBuffer(), { type: 'array' });
   const sheet1 = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheet1];
-  return utils.sheet_to_json(worksheet) as Student[];
+  const students = utils.sheet_to_json(worksheet) as StudentFileModel[];
+  return mapFromFileModels(students);
 }
 
 interface Props {
@@ -20,7 +22,6 @@ interface Props {
 const FileUpload = ({ setStudents }: Props) => {
   const handleFileChange = async (file: any) => {
     const students = (await mapFileToStudents(file)) || [];
-    students.map((x) => (x['SAT Level'] = x['SAT Level'].toString())); // force levels to be strings
     setStudents(students);
   };
 
