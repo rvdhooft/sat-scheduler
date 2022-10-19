@@ -25,7 +25,8 @@ export interface StudentFileModel {
 }
 
 export interface PerformanceRoom {
-  level: string;
+  id: string;
+  levels: string[];
   performances: SatPerformance[];
 }
 
@@ -38,4 +39,9 @@ export interface AuralTest {
   time: Date;
   students: Student[];
   level?: string;
+}
+
+export interface Level {
+  name: string;
+  timeAllowanceInMinutes: number;
 }

@@ -15,7 +15,17 @@ const Performances = ({
   afternoonStartTime,
   updatePerformances,
 }: Props) => {
-  if (!performanceRooms.length) return null;
+  if (!performanceRooms.length || !performanceRooms[0].performances.length) return null;
+
+  const moveRooms = (performanceIndex: number, room: PerformanceRoom, roomId: string) => {
+    const student = room.performances[performanceIndex]?.student;
+    room.performances.splice(performanceIndex, 1);
+    updatePerformances(room);
+    const newRoom = performanceRooms.find((x) => x.id === roomId);
+    if (!newRoom) return;
+    newRoom.performances.push({ time: new Date(), student });
+    updatePerformances(newRoom);
+  };
 
   return (
     <Box flex={1}>
@@ -23,13 +33,15 @@ const Performances = ({
         Performances
       </Typography>
       <Box>
-        {performanceRooms.map((room, i) => (
+        {performanceRooms.map((room) => (
           <PerformanceRoomTable
             room={room}
-            key={i}
+            key={room.id}
             morningEndTime={morningEndTime}
             afternoonStartTime={afternoonStartTime}
             updatePerformances={updatePerformances}
+            moveRooms={moveRooms}
+            allRooms={performanceRooms}
           />
         ))}
       </Box>

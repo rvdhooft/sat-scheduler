@@ -1,17 +1,17 @@
+import update from 'immutability-helper';
 import { Box, Button, TextField } from '@mui/material';
 import { Dispatch, useState } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
+import { Level } from '../models';
 
 interface Props {
-  performanceRoomCount: number;
-  setPerformanceRoomCount: Dispatch<number>;
   auralRoomCount: number;
   setAuralRoomCount: Dispatch<number>;
   auralTimeAllowance: number;
   setAuralTimeAllowance: Dispatch<number>;
-  performanceTimeAllowance: any;
-  setPerformanceTimeAllowance: Dispatch<any>;
+  levels: Level[];
+  setLevels: Dispatch<Level[]>;
   auralStudentLimit: number;
   setAuralStudentLimit: Dispatch<number>;
   timeDifferenceMin: number;
@@ -29,14 +29,12 @@ interface Props {
 }
 
 const OptionFormFields = ({
-  performanceRoomCount,
-  setPerformanceRoomCount,
   auralRoomCount,
   setAuralRoomCount,
   auralTimeAllowance,
   setAuralTimeAllowance,
-  performanceTimeAllowance,
-  setPerformanceTimeAllowance,
+  levels,
+  setLevels,
   auralStudentLimit,
   setAuralStudentLimit,
   timeDifferenceMin,
@@ -53,6 +51,7 @@ const OptionFormFields = ({
   setAfternoonStartTime,
 }: Props) => {
   const [showAll, setShowAll] = useState(false);
+
   return (
     <Box flex={1}>
       <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -62,12 +61,6 @@ const OptionFormFields = ({
           gap={2}
           sx={{ '& .MuiInputBase-root': { minWidth: '258.8px' } }}
         >
-          <TextField
-            label="Performance Room Count"
-            type="number"
-            value={performanceRoomCount}
-            onChange={(event) => setPerformanceRoomCount(+event.target.value)}
-          />
           <TextField
             label="Aural Test Room Count"
             type="number"
@@ -116,25 +109,26 @@ const OptionFormFields = ({
             onChange={(val) => val && setAfternoonStartTime(val)}
             renderInput={(params) => <TextField {...params} />}
           />
+          <TextField
+            label="Sibling Max Start Time Diff (min)"
+            type="number"
+            value={siblingStartMax}
+            onChange={(event) => setSiblingStartMax(+event.target.value)}
+          />
           {showAll && (
             <>
-              <TextField
-                label="Sibling Max Start Time Diff (min)"
-                type="number"
-                value={siblingStartMax}
-                onChange={(event) => setSiblingStartMax(+event.target.value)}
-              />
-              {Object.entries(performanceTimeAllowance).map(([key, value], i) => (
+              {levels.map((level, i) => (
                 <TextField
                   type="number"
-                  label={`Performance Time Allowance: L${key}`}
+                  label={`Performance Time Allowance: L${level.name}`}
                   key={i}
-                  value={value}
+                  value={level.timeAllowanceInMinutes}
                   onChange={(event) =>
-                    setPerformanceTimeAllowance({
-                      ...performanceTimeAllowance,
-                      [key]: event.target.value,
-                    })
+                    setLevels(
+                      update(levels, {
+                        [i]: { timeAllowanceInMinutes: { $set: +event.target.value } },
+                      })
+                    )
                   }
                 />
               ))}

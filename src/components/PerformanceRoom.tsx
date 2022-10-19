@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { compareAsc } from 'date-fns';
-import { memo, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PerformanceRoom, SatPerformance } from '../models';
 import PerformanceRow from './Performance';
 import update from 'immutability-helper';
@@ -9,18 +9,24 @@ interface Props {
   room: PerformanceRoom;
   morningEndTime: Date;
   afternoonStartTime: Date;
+  allRooms: PerformanceRoom[];
   updatePerformances: (room: PerformanceRoom) => void;
+  moveRooms: (performanceIndex: number, room: PerformanceRoom, roomId: string) => void;
 }
 
 const PerformanceRoomTable = ({
   room,
   morningEndTime,
   afternoonStartTime,
+  allRooms,
   updatePerformances,
+  moveRooms,
 }: Props) => {
-  const [performances, setPerformances] = useState<SatPerformance[]>(
-    room.performances.sort((a, b) => compareAsc(a.time, b.time))
-  );
+  const [performances, setPerformances] = useState<SatPerformance[]>([]);
+
+  useEffect(() => {
+    setPerformances(room.performances.sort((a, b) => compareAsc(a.time, b.time)));
+  }, [room.performances]);
 
   const move = (dragIndex: number, hoverIndex: number) => {
     setPerformances(
@@ -33,10 +39,16 @@ const PerformanceRoomTable = ({
     );
   };
 
+  function getAlternateRooms(performance: SatPerformance): string[] {
+    return allRooms
+      .filter((x) => x.id !== room.id && x.levels.includes(performance.student.level))
+      .map((x) => x.id);
+  }
+
   return (
-    <Box mt={4}>
+    <Box mt={2}>
       <Typography variant="h6" component="h3">
-        {room.level}
+        Room {room.id} <small>({room.levels?.join(', ')})</small>
       </Typography>
       <table>
         <tbody>
@@ -48,6 +60,8 @@ const PerformanceRoomTable = ({
               room={room}
               morningEndTime={morningEndTime}
               afternoonStartTime={afternoonStartTime}
+              alternateRooms={getAlternateRooms(p)}
+              moveRooms={(roomId) => moveRooms(j, room, roomId)}
               move={move}
               commitMove={() => {
                 updatePerformances({ ...room, performances });
@@ -60,4 +74,4 @@ const PerformanceRoomTable = ({
   );
 };
 
-export default memo(PerformanceRoomTable);
+export default PerformanceRoomTable;

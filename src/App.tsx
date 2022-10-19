@@ -1,10 +1,10 @@
 import update from 'immutability-helper';
-import { ThemeProvider } from '@emotion/react';
+import { ThemeProvider } from '@mui/material';
 import { theme } from './theme';
 import { AppBar, Box, Button, Container, CssBaseline, Toolbar, Typography } from '@mui/material';
 import FileUpload from './components/FileUpload';
 import { useEffect, useState } from 'react';
-import { AuralTest, PerformanceRoom, SatPerformance, Student } from './models';
+import { AuralTest, Level, PerformanceRoom, SatPerformance, Student } from './models';
 import { compareAsc, addMinutes, isBefore, differenceInMinutes, isAfter } from 'date-fns';
 import OptionFormFields from './components/OptionFormFields';
 import Students from './components/Students';
@@ -23,28 +23,39 @@ import {
   savePerformanceRooms,
   saveStudents,
 } from './utils/localStorage';
+import PerformanceRoomForm from './components/PerformanceRoomForm';
+
+function createDefaultPerformanceRooms() {
+  return [
+    { id: '1', levels: ['1a'], performances: [] },
+    { id: '2', levels: ['1b'], performances: [] },
+    { id: '3', levels: ['2'], performances: [] },
+    { id: '4', levels: ['3'], performances: [] },
+    { id: '5', levels: ['4'], performances: [] },
+    { id: '6', levels: ['5'], performances: [] },
+  ];
+}
 
 function App() {
   const [students, setStudents] = useState<Student[]>(getStudents() || []);
-  const [performanceRoomCount, setPerformanceRoomCount] = useState(6);
   const [auralRoomCount, setAuralRoomCount] = useState(2);
   const [auralStudentLimit, setAuralStudentLimit] = useState(12);
   const [auralTimeAllowance, setAuralTimeAllowance] = useState(15);
-  const [performanceTimeAllowance, setPerformanceTimeAllowance] = useState({
-    '1a': 9,
-    '1b': 9,
-    '2': 9,
-    '3': 9,
-    '4': 10,
-    '5': 10,
-    '6': 11,
-    '7': 11,
-    '8': 14,
-    '9': 14,
-    '10': 17,
-    '11': 17,
-    '12': 17,
-  });
+  const [levels, setLevels] = useState<Level[]>([
+    { name: '1a', timeAllowanceInMinutes: 9 },
+    { name: '1b', timeAllowanceInMinutes: 9 },
+    { name: '2', timeAllowanceInMinutes: 9 },
+    { name: '3', timeAllowanceInMinutes: 9 },
+    { name: '4', timeAllowanceInMinutes: 10 },
+    { name: '5', timeAllowanceInMinutes: 10 },
+    { name: '6', timeAllowanceInMinutes: 11 },
+    { name: '7', timeAllowanceInMinutes: 11 },
+    { name: '8', timeAllowanceInMinutes: 14 },
+    { name: '9', timeAllowanceInMinutes: 14 },
+    { name: '10', timeAllowanceInMinutes: 17 },
+    { name: '11', timeAllowanceInMinutes: 17 },
+    { name: '12', timeAllowanceInMinutes: 17 },
+  ]);
   const [timeDifferenceMin, setTimeDifferenceMin] = useState(20);
   const [timeDifferenceMax, setTimeDifferenceMax] = useState(60);
   const [siblingStartMax, setSiblingStartMax] = useState(20);
@@ -54,7 +65,7 @@ function App() {
   const afternoonEndTime = new Date('2023-01-01T16:00:00');
 
   const [performanceRooms, setPerformanceRooms] = useState<PerformanceRoom[]>(
-    getPerformanceRooms() || []
+    getPerformanceRooms() || createDefaultPerformanceRooms()
   );
   const [auralTests, setAuralTests] = useState<AuralTest[]>(getAuralTests() || []);
 
@@ -69,20 +80,6 @@ function App() {
   useEffect(() => {
     saveAuralTests(auralTests);
   }, [auralTests]);
-
-  function createPerformanceRooms() {
-    // todo: find distribution of levels
-
-    const rooms: PerformanceRoom[] = [
-      { level: '1a', performances: [] },
-      { level: '1b', performances: [] },
-      { level: '2', performances: [] },
-      { level: '3', performances: [] },
-      { level: '4', performances: [] },
-      { level: '5', performances: [] },
-    ];
-    return rooms;
-  }
 
   function createAuralTests(): AuralTest[] {
     const levels = ['1a', '1b', '2', '3', '4', '5'];
@@ -112,10 +109,10 @@ function App() {
   }
 
   function getNextAvailableTimeFromPerformance(performance: SatPerformance) {
-    return addMinutes(
-      performance.time,
-      performanceTimeAllowance[performance.student.level as keyof typeof performanceTimeAllowance]
-    );
+    const minutesForLevel = levels.find(
+      (x) => x.name === performance.student.level
+    )?.timeAllowanceInMinutes;
+    return addMinutes(performance.time, minutesForLevel || 0);
   }
 
   function getNextMorningTime(performances: SatPerformance[]) {
@@ -150,17 +147,18 @@ function App() {
   }
 
   function scheduleStudents() {
-    const perfRooms = createPerformanceRooms();
+    const perfRooms: PerformanceRoom[] = performanceRooms.map((x) => ({ ...x, performances: [] }));
     const auralTests = createAuralTests();
 
     for (const student of students) {
       // Schedule Performance
-      const roomForLevel = perfRooms.find((x) => x.level === student.level);
+      let roomForLevel = perfRooms.find((x) => x.levels[0] === student.level);
+      if (!roomForLevel) roomForLevel = perfRooms.find((x) => x.levels.includes(student.level));
       if (!roomForLevel) continue;
       const nextAvailableTime = getNextAvailableTime(roomForLevel.performances, student.request);
       roomForLevel.performances.push({ time: nextAvailableTime, student });
       student.performanceTime = nextAvailableTime;
-      student.performanceRoom = roomForLevel.level;
+      student.performanceRoom = roomForLevel.id;
 
       // Schedule Aural Test
       const auralsInTimeRange = auralTests.filter((x) => {
@@ -188,7 +186,7 @@ function App() {
         const difference = Math.abs(differenceInMinutes(student.performanceTime as Date, x.time));
         return difference >= timeDifferenceMin && difference <= timeDifferenceMax;
       });
-      if (!emptyAuralsInTimeRange) continue;
+      if (!emptyAuralsInTimeRange.length) continue;
       emptyAuralsInTimeRange[0].level = student.level;
       emptyAuralsInTimeRange[0].students.push(student);
       student.auralTestTime = emptyAuralsInTimeRange[0].time;
@@ -231,7 +229,7 @@ function App() {
 
   const updatePerformances = (room: PerformanceRoom) => {
     reassignTimes(room.performances);
-    const index = performanceRooms.findIndex((x) => x.level === room.level);
+    const index = performanceRooms.findIndex((x) => x.id === room.id);
     setPerformanceRooms((prev: PerformanceRoom[]) =>
       update(prev, {
         $splice: [
@@ -254,17 +252,27 @@ function App() {
     setAuralTests(tests);
   };
 
+  function resetRooms() {
+    setPerformanceRooms(performanceRooms.map((x) => ({ ...x, performances: [] })));
+    setAuralTests([]);
+  }
+
   const handleStudentsChange = (students: Student[]) => {
     students.sort(sortStudents(students));
     setStudents(students);
-    setPerformanceRooms([]);
-    setAuralTests([]);
+    resetRooms();
   };
 
   const generateTestStudents = () => {
     setStudents(generateTestData());
-    setPerformanceRooms([]);
+    resetRooms();
+  };
+
+  const clear = () => {
+    setStudents([]);
     setAuralTests([]);
+    setPerformanceRooms(createDefaultPerformanceRooms());
+    localStorage.clear();
   };
 
   return (
@@ -282,14 +290,12 @@ function App() {
           <Container maxWidth={false} sx={{ px: 10, py: 5 }}>
             <Box display="flex">
               <OptionFormFields
-                performanceRoomCount={performanceRoomCount}
-                setPerformanceRoomCount={setPerformanceRoomCount}
                 auralRoomCount={auralRoomCount}
                 setAuralRoomCount={setAuralRoomCount}
                 auralTimeAllowance={auralTimeAllowance}
                 setAuralTimeAllowance={setAuralTimeAllowance}
-                performanceTimeAllowance={performanceTimeAllowance}
-                setPerformanceTimeAllowance={setPerformanceTimeAllowance}
+                levels={levels}
+                setLevels={setLevels}
                 auralStudentLimit={auralStudentLimit}
                 setAuralStudentLimit={setAuralStudentLimit}
                 timeDifferenceMin={timeDifferenceMin}
@@ -312,9 +318,15 @@ function App() {
                 </Button>
               </Box>
             </Box>
+            <PerformanceRoomForm
+              performanceRooms={performanceRooms}
+              setPerformanceRooms={setPerformanceRooms}
+              levels={levels}
+              students={students}
+            />
             <Students
               students={students}
-              hasSchedule={performanceRooms.length > 0}
+              hasSchedule={auralTests.length > 0}
               timeDifferenceMin={timeDifferenceMin}
               timeDifferenceMax={timeDifferenceMax}
               siblingStartMax={siblingStartMax}
@@ -325,16 +337,21 @@ function App() {
                   Schedule
                 </Button>
               )}
-              {performanceRooms.length > 0 && (
-                <Button
-                  variant="contained"
-                  sx={{ ml: 3 }}
-                  onClick={() =>
-                    exportToFile(students, performanceRooms, auralTests, auralRoomCount)
-                  }
-                >
-                  Export
-                </Button>
+              {auralTests.length > 0 && (
+                <>
+                  <Button
+                    variant="contained"
+                    sx={{ ml: 3 }}
+                    onClick={() =>
+                      exportToFile(students, performanceRooms, auralTests, auralRoomCount)
+                    }
+                  >
+                    Export
+                  </Button>
+                  <Button sx={{ ml: 3 }} onClick={clear}>
+                    Clear
+                  </Button>
+                </>
               )}
             </Box>
             <Box display="flex" gap={3} alignItems="flex-start" mt={4}>

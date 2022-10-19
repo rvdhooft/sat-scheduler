@@ -5,6 +5,7 @@ import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { PerformanceRoom, SatPerformance } from '../models';
 import formatTime from '../utils/formatTime';
+import PerformanceMenu from './PerformanceMenu';
 
 interface Props {
   performance: SatPerformance;
@@ -12,6 +13,8 @@ interface Props {
   room: PerformanceRoom;
   morningEndTime: Date;
   afternoonStartTime: Date;
+  alternateRooms: string[];
+  moveRooms: (roomId: string) => void;
   move: (dragIndex: number, hoverIndex: number) => void;
   commitMove: () => void;
 }
@@ -27,13 +30,15 @@ const PerformanceRow = ({
   index,
   morningEndTime,
   afternoonStartTime,
+  alternateRooms,
+  moveRooms,
   move,
   commitMove,
 }: Props) => {
   const ref = useRef<HTMLTableRowElement>(null);
 
   const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
-    accept: `performance-${room.level}`,
+    accept: `performance-${room.id}`,
     collect(monitor) {
       return {
         handlerId: monitor.getHandlerId(),
@@ -65,7 +70,7 @@ const PerformanceRow = ({
   });
 
   const [{ isDragging }, drag] = useDrag({
-    type: `performance-${room.level}`,
+    type: `performance-${room.id}`,
     item: () => {
       return { index };
     },
@@ -76,8 +81,9 @@ const PerformanceRow = ({
   const opacity = isDragging ? 0 : 1;
   drag(drop(ref));
 
-  function showPerformanceLevelError(p: SatPerformance, roomLevel: string) {
-    if (p.student.level !== roomLevel) return true;
+  function showPerformanceLevelError(p: SatPerformance, roomLevels: string[]) {
+    if (!roomLevels) return;
+    if (!roomLevels.includes(p.student.level)) return true;
   }
 
   function showPerformanceRequestError(p: SatPerformance) {
@@ -112,7 +118,7 @@ const PerformanceRow = ({
       <td>
         <Typography
           component="span"
-          color={showPerformanceLevelError(performance, room.level) ? 'error' : ''}
+          color={showPerformanceLevelError(performance, room.levels) ? 'error' : ''}
         >
           {performance.student?.level}
         </Typography>
@@ -124,6 +130,11 @@ const PerformanceRow = ({
         >
           {performance.student?.request}
         </Typography>
+      </td>
+      <td>
+        {alternateRooms.length > 0 && (
+          <PerformanceMenu alternateRooms={alternateRooms} moveRooms={moveRooms} />
+        )}
       </td>
     </Box>
   );
