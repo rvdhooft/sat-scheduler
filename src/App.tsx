@@ -82,7 +82,7 @@ function App() {
   }, [auralTests]);
 
   function createAuralTests(): AuralTest[] {
-    const levels = ['1a', '1b', '2', '3', '4', '5'];
+    const auralTestLevels = [...new Set(performanceRooms.map((x) => x.levels).flat())];
     let levelIndex = 0;
     const tests = [];
     let time = morningStartTime;
@@ -91,8 +91,8 @@ function App() {
       // skip over 10 am so they get a ~15 min break
       if (!(time.getHours() == 10 && time.getMinutes() === 0)) {
         for (let i = 0; i < auralRoomCount; i++) {
-          tests.push({ time, level: levels[levelIndex], students: [] });
-          levelIndex = (levelIndex + 1) % levels.length;
+          tests.push({ time, level: auralTestLevels[levelIndex], students: [] });
+          levelIndex = (levelIndex + 1) % auralTestLevels.length;
         }
       }
       time = addMinutes(time, auralTimeAllowance);
@@ -100,8 +100,8 @@ function App() {
     time = afternoonStartTime;
     while (isBefore(time, afternoonEndTime)) {
       for (let i = 0; i < auralRoomCount; i++) {
-        tests.push({ time, level: levels[levelIndex], students: [] });
-        levelIndex = (levelIndex + 1) % levels.length;
+        tests.push({ time, level: auralTestLevels[levelIndex], students: [] });
+        levelIndex = (levelIndex + 1) % auralTestLevels.length;
       }
       time = addMinutes(time, auralTimeAllowance);
     }
