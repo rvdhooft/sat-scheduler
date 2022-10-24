@@ -50,7 +50,7 @@ const PerformanceRoomForm = ({
     minutes: students.filter((x) => x.level === name).length * timeAllowanceInMinutes,
   }));
   const totalMinutes = totalMinutesByLevel.reduce((sum, value) => sum + value.minutes, 0);
-  const targetMinutesPerRoom = Math.round(totalMinutes / performanceRooms.length);
+  const targetMinutesPerRoom = Math.round(totalMinutes / (performanceRooms.length * 2));
 
   const handleChange = (event: SelectChangeEvent<string[]>, roomIndex: number) => {
     const {
@@ -80,11 +80,11 @@ const PerformanceRoomForm = ({
   };
 
   return (
-    <Box my={3}>
-      <Typography variant="h6" mb={2}>
+    <Box>
+      <Typography variant="h5" mb={4}>
         Performance Rooms
       </Typography>
-      <Box display="flex">
+      <Box display="flex" flexWrap="wrap" gap={2}>
         {performanceRooms.map((room, i) => (
           <FormControl key={room.id}>
             <InputLabel id="levels">Room {room.id} Levels</InputLabel>
@@ -94,9 +94,7 @@ const PerformanceRoomForm = ({
               labelId="levels"
               value={room.levels}
               onChange={(event) => handleChange(event, i)}
-              input={
-                <OutlinedInput label={`Room ${room.id} Levels`} sx={{ width: '8rem', mr: 2 }} />
-              }
+              input={<OutlinedInput label={`Room ${room.id} Levels`} sx={{ width: '8rem' }} />}
               renderValue={(selected) => selected.join(', ')}
               MenuProps={MenuProps}
             >

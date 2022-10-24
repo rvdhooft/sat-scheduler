@@ -13,10 +13,18 @@ export default function generateTestData() {
   let siblings = undefined;
   let siblingRequest = undefined;
   let siblingCount = 0;
-  const total = 200;
+  const total = 300;
   for (let i = 0; i < total; i++) {
     const randomRequest = getRandomInt(1, 5);
-    const randomLevel = getRandomInt(0, 5);
+    let randomLevel = getRandomInt(0, 12);
+    // Have fewer 11s & 12s
+    if (randomLevel > 10) {
+      if (i % 3 === 0) {
+        randomLevel = 0;
+      } else if (i % 3 === 1) {
+        randomLevel = 1;
+      }
+    }
     if (siblingCount == 0) {
       siblings = undefined;
       siblingRequest = undefined;

@@ -1,7 +1,8 @@
-import { Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useRef } from 'react';
 import { useDrag } from 'react-dnd';
 import { Student } from '../models';
+import formatTime from '../utils/formatTime';
 
 interface Props {
   student: Student;
@@ -30,9 +31,27 @@ const AuralTestStudent = ({ student, index, testIndex, showError }: Props) => {
   drag(ref);
 
   return (
-    <Typography ref={ref} color={showError ? 'error' : ''} sx={{ opacity, cursor: 'move' }}>
-      {student.fullName} ({student.level}, {student.request || 'none'})
-    </Typography>
+    <Box
+      display="flex"
+      ref={ref}
+      sx={{
+        opacity,
+        cursor: 'move',
+        '& *': { pr: 2 },
+        color: (theme) => (showError ? theme.palette.error.main : ''),
+        '&:hover': {
+          backgroundColor: '#f1f1f1',
+        },
+      }}
+    >
+      <Typography sx={{ width: '10rem' }}>{student.fullName}</Typography>
+      <Typography sx={{ width: '3.5rem' }}>{student.level}</Typography>
+      <Typography sx={{ width: '5rem' }}>{student.request}</Typography>
+      <Typography sx={{ width: '8rem' }}>{student.siblings}</Typography>
+      <Typography sx={{ width: '10rem' }}>
+        {student.performanceTime ? formatTime(student.performanceTime) : ''}
+      </Typography>
+    </Box>
   );
 };
 

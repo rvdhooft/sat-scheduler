@@ -43,25 +43,30 @@ const AuralTests = ({
 
   return (
     <Box flex={1}>
-      <Typography variant="h6" component="h3">
+      <Typography variant="h5" component="h3" mb={2}>
         Aural Tests
       </Typography>
-      <table>
-        <tbody>
-          {tests.map((test, i) => (
-            <AuralTestRow
-              key={i}
-              test={test}
-              index={i}
-              auralStudentLimit={auralStudentLimit}
-              morningEndTime={morningEndTime}
-              afternoonStartTime={afternoonStartTime}
-              move={move}
-              commitMove={() => updateAuralTests(tests)}
-            />
-          ))}
-        </tbody>
-      </table>
+      <Box display="flex" sx={{ '& *': { pr: 2, fontWeight: 'bold' } }}>
+        <Typography sx={{ width: '6rem' }}>Time</Typography>
+        <Typography sx={{ width: '3.5rem' }}>Level</Typography>
+        <Typography sx={{ width: '10rem' }}>Student</Typography>
+        <Typography sx={{ width: '3.5rem' }}>Level</Typography>
+        <Typography sx={{ width: '5rem' }}>Request</Typography>
+        <Typography sx={{ width: '8rem' }}>Siblings</Typography>
+        <Typography sx={{ width: '10rem' }}>Performance Time</Typography>
+      </Box>
+      {tests.map((test, i) => (
+        <AuralTestRow
+          key={i}
+          test={test}
+          index={i}
+          auralStudentLimit={auralStudentLimit}
+          morningEndTime={morningEndTime}
+          afternoonStartTime={afternoonStartTime}
+          move={move}
+          commitMove={() => updateAuralTests(tests)}
+        />
+      ))}
     </Box>
   );
 };

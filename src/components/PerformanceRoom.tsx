@@ -47,10 +47,20 @@ const PerformanceRoomTable = ({
 
   return (
     <Box mt={2}>
-      <Typography variant="h6" component="h3">
+      <Typography variant="h6" mb={1}>
         Room {room.id} <small>({room.levels?.join(', ')})</small>
       </Typography>
-      <table>
+      <table cellSpacing="0" cellPadding="0">
+        <thead>
+          <Box component="tr" sx={{ '& th': { textAlign: 'left', px: 2 } }}>
+            <th>Time</th>
+            <th>Student</th>
+            <th>Level</th>
+            <th>Request</th>
+            <th>Siblings</th>
+            <th>Aural Test Time</th>
+          </Box>
+        </thead>
         <tbody>
           {performances.map((p, j) => (
             <PerformanceRow

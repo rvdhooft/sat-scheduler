@@ -1,5 +1,5 @@
 import update from 'immutability-helper';
-import { ThemeProvider } from '@mui/material';
+import { Tab, Tabs, ThemeProvider } from '@mui/material';
 import { theme } from './theme';
 import { AppBar, Box, Button, Container, CssBaseline, Toolbar, Typography } from '@mui/material';
 import FileUpload from './components/FileUpload';
@@ -15,17 +15,22 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import exportToFile from './utils/exportToFile';
 import sortStudents from './utils/sortStudents';
 import generateTestData from './utils/generateTestData';
+import PerformanceRoomForm from './components/PerformanceRoomForm';
+import TabPanel from './components/TabPanel';
 import {
-  getAuralTests,
-  getPerformanceRooms,
+  getAuralTestsDay1,
+  getAuralTestsDay2,
+  getPerformanceRoomsDay1,
+  getPerformanceRoomsDay2,
   getStudents,
-  saveAuralTests,
-  savePerformanceRooms,
+  saveAuralTestsDay1,
+  saveAuralTestsDay2,
+  savePerformanceRoomsDay1,
+  savePerformanceRoomsDay2,
   saveStudents,
 } from './utils/localStorage';
-import PerformanceRoomForm from './components/PerformanceRoomForm';
 
-function createDefaultPerformanceRooms() {
+function createDefaultPerformanceRoomsDay1() {
   return [
     { id: '1', levels: ['1a'], performances: [] },
     { id: '2', levels: ['1b'], performances: [] },
@@ -33,6 +38,17 @@ function createDefaultPerformanceRooms() {
     { id: '4', levels: ['3'], performances: [] },
     { id: '5', levels: ['4'], performances: [] },
     { id: '6', levels: ['5'], performances: [] },
+  ];
+}
+
+function createDefaultPerformanceRoomsDay2() {
+  return [
+    { id: '1', levels: ['6'], performances: [] },
+    { id: '2', levels: ['7'], performances: [] },
+    { id: '3', levels: ['8'], performances: [] },
+    { id: '4', levels: ['9'], performances: [] },
+    { id: '5', levels: ['10'], performances: [] },
+    { id: '6', levels: ['11', '12'], performances: [] },
   ];
 }
 
@@ -63,26 +79,52 @@ function App() {
   const [morningEndTime, setMorningEndTime] = useState(new Date('2023-01-01T12:00:00'));
   const [afternoonStartTime, setAfternoonStartTime] = useState(new Date('2023-01-01T13:00:00'));
   const afternoonEndTime = new Date('2023-01-01T16:00:00');
+  const [tab, setTab] = useState(0);
+  const [day, setDay] = useState(0);
 
-  const [performanceRooms, setPerformanceRooms] = useState<PerformanceRoom[]>(
-    getPerformanceRooms() || createDefaultPerformanceRooms()
+  const [performanceRoomsDay1, setPerformanceRoomsDay1] = useState<PerformanceRoom[]>(
+    getPerformanceRoomsDay1() || createDefaultPerformanceRoomsDay1()
   );
-  const [auralTests, setAuralTests] = useState<AuralTest[]>(getAuralTests() || []);
+  const [performanceRoomsDay2, setPerformanceRoomsDay2] = useState<PerformanceRoom[]>(
+    getPerformanceRoomsDay2() || createDefaultPerformanceRoomsDay2()
+  );
+  const [auralTestsDay1, setAuralTestsDay1] = useState<AuralTest[]>(getAuralTestsDay1() || []);
+  const [auralTestsDay2, setAuralTestsDay2] = useState<AuralTest[]>(getAuralTestsDay2() || []);
 
   useEffect(() => {
     saveStudents(students);
   }, [students]);
 
   useEffect(() => {
-    savePerformanceRooms(performanceRooms);
-  }, [performanceRooms]);
+    savePerformanceRoomsDay1(performanceRoomsDay1);
+  }, [performanceRoomsDay1]);
 
   useEffect(() => {
-    saveAuralTests(auralTests);
-  }, [auralTests]);
+    savePerformanceRoomsDay2(performanceRoomsDay2);
+  }, [performanceRoomsDay2]);
 
-  function createAuralTests(): AuralTest[] {
-    const auralTestLevels = [...new Set(performanceRooms.map((x) => x.levels).flat())];
+  useEffect(() => {
+    saveAuralTestsDay1(auralTestsDay1);
+  }, [auralTestsDay1]);
+
+  useEffect(() => {
+    saveAuralTestsDay2(auralTestsDay2);
+  }, [auralTestsDay2]);
+
+  function studentsByDay(day: number) {
+    const levels = getLevelsForDay(day);
+    return students.filter((x) => levels.includes(x.level));
+  }
+
+  function getLevelsForDay(day: number) {
+    const levels = (day === 0 ? performanceRoomsDay1 : performanceRoomsDay2)
+      .map((x) => x.levels)
+      .flat();
+    return [...new Set(levels)]; // get rid of duplicates
+  }
+
+  function createAuralTests(day: number): AuralTest[] {
+    const auralTestLevels = getLevelsForDay(day);
     let levelIndex = 0;
     const tests = [];
     let time = morningStartTime;
@@ -147,8 +189,18 @@ function App() {
   }
 
   function scheduleStudents() {
-    const perfRooms: PerformanceRoom[] = performanceRooms.map((x) => ({ ...x, performances: [] }));
-    const auralTests = createAuralTests();
+    scheduleStudentsForDay(0);
+    scheduleStudentsForDay(1);
+  }
+
+  function scheduleStudentsForDay(day: number) {
+    const perfRooms: PerformanceRoom[] = (
+      day === 0 ? performanceRoomsDay1 : performanceRoomsDay2
+    ).map((x) => ({
+      ...x,
+      performances: [],
+    }));
+    const auralTests = createAuralTests(day);
 
     for (const student of students) {
       // Schedule Performance
@@ -192,8 +244,13 @@ function App() {
       student.auralTestTime = emptyAuralsInTimeRange[0].time;
     }
 
-    setPerformanceRooms(perfRooms);
-    setAuralTests(auralTests);
+    if (day === 0) {
+      setPerformanceRoomsDay1(perfRooms);
+      setAuralTestsDay1(auralTests);
+    } else {
+      setPerformanceRoomsDay2(perfRooms);
+      setAuralTestsDay2(auralTests);
+    }
     saveStudents(students);
   }
 
@@ -229,15 +286,27 @@ function App() {
 
   const updatePerformances = (room: PerformanceRoom) => {
     reassignTimes(room.performances);
-    const index = performanceRooms.findIndex((x) => x.id === room.id);
-    setPerformanceRooms((prev: PerformanceRoom[]) =>
-      update(prev, {
-        $splice: [
-          [index, 1],
-          [index, 0, room],
-        ],
-      })
-    );
+    if (day === 0) {
+      const index = performanceRoomsDay1.findIndex((x) => x.id === room.id);
+      setPerformanceRoomsDay1((prev: PerformanceRoom[]) =>
+        update(prev, {
+          $splice: [
+            [index, 1],
+            [index, 0, room],
+          ],
+        })
+      );
+    } else {
+      const index = performanceRoomsDay2.findIndex((x) => x.id === room.id);
+      setPerformanceRoomsDay2((prev: PerformanceRoom[]) =>
+        update(prev, {
+          $splice: [
+            [index, 1],
+            [index, 0, room],
+          ],
+        })
+      );
+    }
   };
 
   const updateAuralTests = (tests: AuralTest[]) => {
@@ -249,12 +318,18 @@ function App() {
       }
     }
     setStudents(updatedStudents);
-    setAuralTests(tests);
+    if (day === 0) {
+      setAuralTestsDay1(tests);
+    } else {
+      setAuralTestsDay2(tests);
+    }
   };
 
   function resetRooms() {
-    setPerformanceRooms(performanceRooms.map((x) => ({ ...x, performances: [] })));
-    setAuralTests([]);
+    setPerformanceRoomsDay1(performanceRoomsDay1.map((x) => ({ ...x, performances: [] })));
+    setPerformanceRoomsDay2(performanceRoomsDay2.map((x) => ({ ...x, performances: [] })));
+    setAuralTestsDay1([]);
+    setAuralTestsDay2([]);
   }
 
   const handleStudentsChange = (students: Student[]) => {
@@ -270,8 +345,10 @@ function App() {
 
   const clear = () => {
     setStudents([]);
-    setAuralTests([]);
-    setPerformanceRooms(createDefaultPerformanceRooms());
+    setAuralTestsDay1([]);
+    setAuralTestsDay2([]);
+    setPerformanceRoomsDay1(createDefaultPerformanceRoomsDay1());
+    setPerformanceRoomsDay2(createDefaultPerformanceRoomsDay2());
     localStorage.clear();
   };
 
@@ -318,56 +395,106 @@ function App() {
                 </Button>
               </Box>
             </Box>
-            <PerformanceRoomForm
-              performanceRooms={performanceRooms}
-              setPerformanceRooms={setPerformanceRooms}
-              levels={levels}
-              students={students}
-            />
-            <Students
-              students={students}
-              hasSchedule={auralTests.length > 0}
-              timeDifferenceMin={timeDifferenceMin}
-              timeDifferenceMax={timeDifferenceMax}
-              siblingStartMax={siblingStartMax}
-            />
-            <Box mt={2}>
-              {students.length > 0 && (
-                <Button variant="contained" onClick={() => scheduleStudents()}>
+            <Box
+              sx={{
+                position: 'sticky',
+                top: 0,
+                backgroundColor: 'white',
+                borderBottom: 1,
+                borderColor: 'divider',
+                my: 4,
+                pt: 1,
+              }}
+            >
+              <Box sx={{ position: 'absolute', top: '0.625rem', zIndex: 1 }}>
+                <Button
+                  disabled={!students.length}
+                  variant="contained"
+                  onClick={() => scheduleStudents()}
+                >
                   Schedule
                 </Button>
-              )}
-              {auralTests.length > 0 && (
-                <>
-                  <Button
-                    variant="contained"
-                    sx={{ ml: 3 }}
-                    onClick={() =>
-                      exportToFile(students, performanceRooms, auralTests, auralRoomCount)
-                    }
-                  >
-                    Export
-                  </Button>
-                  <Button sx={{ ml: 3 }} onClick={clear}>
-                    Clear
-                  </Button>
-                </>
-              )}
+                <Button
+                  disabled={!auralTestsDay1.length}
+                  sx={{ ml: 3 }}
+                  onClick={() =>
+                    exportToFile(students, performanceRoomsDay1, auralTestsDay1, auralRoomCount)
+                  }
+                >
+                  Export
+                </Button>
+                <Button disabled={!students.length} sx={{ ml: 3 }} onClick={clear}>
+                  Clear
+                </Button>
+              </Box>
+              <Tabs
+                value={day}
+                onChange={(_event, newValue) => setDay(newValue)}
+                centered
+                sx={{
+                  '& .MuiTab-root': { width: '9rem', fontSize: '1.125rem' },
+                }}
+              >
+                <Tab label="Day 1" />
+                <Tab label="Day 2" />
+              </Tabs>
             </Box>
-            <Box display="flex" gap={3} alignItems="flex-start" mt={4}>
-              <Performances
-                performanceRooms={performanceRooms}
-                morningEndTime={morningEndTime}
-                afternoonStartTime={afternoonStartTime}
-                updatePerformances={updatePerformances}
-              />
-              <AuralTests
-                auralTests={auralTests}
-                auralStudentLimit={auralStudentLimit}
-                morningEndTime={morningEndTime}
-                afternoonStartTime={afternoonStartTime}
-                updateAuralTests={updateAuralTests}
-              />
+            <Box display="flex" alignItems="flex-start">
+              <Tabs
+                textColor="secondary"
+                indicatorColor="secondary"
+                orientation="vertical"
+                variant="scrollable"
+                value={tab}
+                onChange={(_event, newValue) => setTab(newValue)}
+                sx={{
+                  minWidth: '11rem',
+                  maxWidth: '9rem',
+                  position: 'sticky',
+                  top: '5rem',
+                }}
+              >
+                <Tab label="Performance Rooms" />
+                <Tab label="Students" />
+                <Tab label="Performances" />
+                <Tab label="Aural Tests" />
+              </Tabs>
+              <TabPanel value={tab} index={0}>
+                <PerformanceRoomForm
+                  performanceRooms={day === 0 ? performanceRoomsDay1 : performanceRoomsDay2}
+                  setPerformanceRooms={
+                    day === 0 ? setPerformanceRoomsDay1 : setPerformanceRoomsDay2
+                  }
+                  levels={levels}
+                  students={students}
+                />
+              </TabPanel>
+              <TabPanel value={tab} index={1}>
+                <Students
+                  students={day === 0 ? studentsByDay(0) : studentsByDay(1)}
+                  hasSchedule={auralTestsDay1.length > 0}
+                  timeDifferenceMin={timeDifferenceMin}
+                  timeDifferenceMax={timeDifferenceMax}
+                  siblingStartMax={siblingStartMax}
+                />
+              </TabPanel>
+              <TabPanel value={tab} index={2}>
+                <Performances
+                  performanceRooms={day === 0 ? performanceRoomsDay1 : performanceRoomsDay2}
+                  morningEndTime={morningEndTime}
+                  afternoonStartTime={afternoonStartTime}
+                  updatePerformances={updatePerformances}
+                />
+              </TabPanel>
+              <TabPanel value={tab} index={3}>
+                <AuralTests
+                  auralTests={day === 0 ? auralTestsDay1 : auralTestsDay2}
+                  auralStudentLimit={auralStudentLimit}
+                  morningEndTime={morningEndTime}
+                  afternoonStartTime={afternoonStartTime}
+                  updateAuralTests={updateAuralTests}
+                />
+              </TabPanel>
             </Box>
           </Container>
         </main>

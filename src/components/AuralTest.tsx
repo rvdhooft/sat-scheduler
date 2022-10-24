@@ -1,5 +1,5 @@
 import type { Identifier, XYCoord } from 'dnd-core';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { isAfter, isBefore } from 'date-fns';
 import { useDrop } from 'react-dnd';
 import { AuralTest, Student } from '../models';
@@ -82,22 +82,24 @@ const AuralTestRow = ({
   drop(ref);
 
   return (
-    <Box ref={ref} component="tr" sx={{ '& td': { padding: '0.25rem 1rem' } }}>
-      <td>{formatTime(test.time)}</td>
-      <td>{test.level}</td>
-      <td>
-        <>
-          {test.students.map((s, j) => (
-            <AuralTestStudent
-              student={s}
-              testIndex={index}
-              index={j}
-              key={s.id}
-              showError={showAuralError(s)}
-            />
-          ))}
-        </>
-      </td>
+    <Box ref={ref} display="flex" py={1}>
+      <Typography pr={2} sx={{ width: '6rem' }}>
+        {formatTime(test.time)}
+      </Typography>
+      <Typography pr={2} sx={{ width: '3.5rem' }}>
+        {test.level}
+      </Typography>
+      <Box sx={{ flexGrow: 1 }}>
+        {test.students.map((s, j) => (
+          <AuralTestStudent
+            student={s}
+            testIndex={index}
+            index={j}
+            key={s.id}
+            showError={showAuralError(s)}
+          />
+        ))}
+      </Box>
     </Box>
   );
 };

@@ -7,29 +7,51 @@ const dateTimeReviver = function (key: string, value: string) {
   return value;
 };
 
-export function getStudents() {
-  const data = localStorage.getItem('students');
+function getFromJsonByKey(key: string) {
+  const data = localStorage.getItem(key);
   return data ? JSON.parse(data, dateTimeReviver) : null;
+}
+
+function saveByKey(key: string, data: any) {
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+export function getStudents() {
+  return getFromJsonByKey('students');
 }
 
 export function saveStudents(students: Student[]) {
-  localStorage.setItem('students', JSON.stringify(students));
+  saveByKey('students', students);
 }
 
-export function getPerformanceRooms() {
-  const data = localStorage.getItem('performanceRooms');
-  return data ? JSON.parse(data, dateTimeReviver) : null;
+export function getPerformanceRoomsDay1() {
+  return getFromJsonByKey('performanceRoomsDay1');
 }
 
-export function savePerformanceRooms(performanceRooms: PerformanceRoom[]) {
-  localStorage.setItem('performanceRooms', JSON.stringify(performanceRooms));
+export function getPerformanceRoomsDay2() {
+  return getFromJsonByKey('performanceRoomsDay2');
 }
 
-export function getAuralTests() {
-  const data = localStorage.getItem('auralTests');
-  return data ? JSON.parse(data, dateTimeReviver) : null;
+export function savePerformanceRoomsDay1(performanceRooms: PerformanceRoom[]) {
+  return saveByKey('performanceRoomsDay1', performanceRooms);
 }
 
-export function saveAuralTests(auralTests: AuralTest[]) {
-  localStorage.setItem('auralTests', JSON.stringify(auralTests));
+export function savePerformanceRoomsDay2(performanceRooms: PerformanceRoom[]) {
+  return saveByKey('performanceRoomsDay2', performanceRooms);
+}
+
+export function getAuralTestsDay1() {
+  return getFromJsonByKey('auralTestsDay1');
+}
+
+export function getAuralTestsDay2() {
+  return getFromJsonByKey('auralTestsDay2');
+}
+
+export function saveAuralTestsDay1(auralTests: AuralTest[]) {
+  return saveByKey('auralTestsDay1', auralTests);
+}
+
+export function saveAuralTestsDay2(auralTests: AuralTest[]) {
+  return saveByKey('auralTestsDay2', auralTests);
 }

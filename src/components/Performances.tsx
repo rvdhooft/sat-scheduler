@@ -15,7 +15,8 @@ const Performances = ({
   afternoonStartTime,
   updatePerformances,
 }: Props) => {
-  if (!performanceRooms.length || !performanceRooms[0].performances.length) return null;
+  if (!performanceRooms.length || !performanceRooms[0].performances.length)
+    return <Typography>None</Typography>;
 
   const moveRooms = (performanceIndex: number, room: PerformanceRoom, roomId: string) => {
     const student = room.performances[performanceIndex]?.student;
@@ -29,7 +30,7 @@ const Performances = ({
 
   return (
     <Box flex={1}>
-      <Typography variant="h6" component="h3">
+      <Typography variant="h5" component="h3">
         Performances
       </Typography>
       <Box>

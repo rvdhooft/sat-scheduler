@@ -19,7 +19,7 @@ const Students = ({
   timeDifferenceMin,
   timeDifferenceMax,
 }: Props) => {
-  if (!students.length) return null;
+  if (!students.length) return <Typography>None</Typography>;
 
   function showSiblingStartTimeDiffError(student: Student) {
     const diff = getSiblingStartDiffMax(student);
@@ -56,10 +56,8 @@ const Students = ({
 
   return (
     <>
-      <Typography variant="h5" mt={4}>
-        Students
-      </Typography>
-      <table style={{ marginTop: '1rem' }}>
+      <Typography variant="h5">Students</Typography>
+      <table>
         <Box component="thead" sx={{ '& th': { textAlign: 'left', padding: '0.25rem 1rem' } }}>
           <tr>
             <th>Name</th>
@@ -69,7 +67,7 @@ const Students = ({
             <th>Performance</th>
             <th>Aural</th>
             <th>Time Diff (min)</th>
-            <th>Max Sibling Start Time Diff (min)</th>
+            <th style={{ maxWidth: '10rem' }}>Max Sibling Start Time Diff (min)</th>
           </tr>
         </Box>
         <tbody>

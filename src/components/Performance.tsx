@@ -102,7 +102,14 @@ const PerformanceRow = ({
       ref={ref}
       data-handler-id={handlerId}
       component="tr"
-      sx={{ '& td': { padding: '0.25rem 1rem' }, opacity, cursor: 'move' }}
+      sx={{
+        '& td': { padding: '0.25rem 1rem' },
+        opacity,
+        cursor: 'move',
+        '&:hover': {
+          backgroundColor: '#f1f1f1',
+        },
+      }}
     >
       <td>
         <Typography
@@ -129,6 +136,14 @@ const PerformanceRow = ({
           color={showPerformanceRequestError(performance) ? 'error' : ''}
         >
           {performance.student?.request}
+        </Typography>
+      </td>
+      <td>
+        <Typography component="span">{performance.student?.siblings}</Typography>
+      </td>
+      <td>
+        <Typography component="span">
+          {performance.student?.auralTestTime && formatTime(performance.student?.auralTestTime)}
         </Typography>
       </td>
       <td>
