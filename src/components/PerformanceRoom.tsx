@@ -55,10 +55,10 @@ const PerformanceRoomTable = ({
           <Box component="tr" sx={{ '& th': { textAlign: 'left', px: 2 } }}>
             <th>Time</th>
             <th>Student</th>
+            <th>Aural Test Time</th>
             <th>Level</th>
             <th>Request</th>
             <th>Siblings</th>
-            <th>Aural Test Time</th>
           </Box>
         </thead>
         <tbody>

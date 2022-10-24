@@ -5,7 +5,7 @@ import { AppBar, Box, Button, Container, CssBaseline, Toolbar, Typography } from
 import FileUpload from './components/FileUpload';
 import { useEffect, useState } from 'react';
 import { AuralTest, Level, PerformanceRoom, SatPerformance, Student } from './models';
-import { compareAsc, addMinutes, isBefore, differenceInMinutes, isAfter } from 'date-fns';
+import { compareAsc, addMinutes, isBefore, differenceInMinutes, isAfter, isEqual } from 'date-fns';
 import OptionFormFields from './components/OptionFormFields';
 import Students from './components/Students';
 import Performances from './components/Performances';
@@ -155,7 +155,7 @@ function App() {
 
   function getNextMorningTime(performances: SatPerformance[]) {
     const filtered = performances
-      .filter((x) => x.time < morningEndTime)
+      .filter((x) => isBefore(x.time, morningEndTime))
       .sort((a, b) => compareAsc(b.time, a.time));
     if (!filtered?.length) return morningStartTime;
     return getNextAvailableTimeFromPerformance(filtered[0]);
@@ -178,7 +178,7 @@ function App() {
       // 15 minute break
       nextTime = addMinutes(nextTime, 15);
     }
-    if (isAfter(nextTime, morningEndTime)) {
+    if (isEqual(nextTime, morningEndTime) || isAfter(nextTime, morningEndTime)) {
       return getNextAfternoonTime(performances);
     }
     return nextTime;

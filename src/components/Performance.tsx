@@ -106,7 +106,7 @@ const PerformanceRow = ({
       data-handler-id={handlerId}
       component="tr"
       sx={{
-        '& td': { padding: '0.25rem 1rem' },
+        '& td': { padding: '0.25rem 1rem', verticalAlign: 'top' },
         opacity,
         cursor: 'move',
         '&:hover': {
@@ -124,6 +124,11 @@ const PerformanceRow = ({
       </td>
       <td>
         <Typography component="span">{performance.student?.fullName}</Typography>
+      </td>
+      <td>
+        <Typography component="span">
+          {performance.student?.auralTestTime && formatTime(performance.student?.auralTestTime)}
+        </Typography>
       </td>
       <td>
         <Typography
@@ -144,14 +149,13 @@ const PerformanceRow = ({
       <td>
         {getSiblings(performance.student, students).map((x) => (
           <div key={x.id}>
-            {x.fullName} ({formatTime(x.performanceTime)} P, {formatTime(x.auralTestTime)} A)
+            {x.fullName} ({formatTime(x.performanceTime)} P,{' '}
+            <Typography color={!x.auralTestTime ? 'error' : ''} component="span">
+              {formatTime(x.auralTestTime) || 'None'}
+            </Typography>{' '}
+            A)
           </div>
         ))}
-      </td>
-      <td>
-        <Typography component="span">
-          {performance.student?.auralTestTime && formatTime(performance.student?.auralTestTime)}
-        </Typography>
       </td>
       <td>
         {alternateRooms.length > 0 && (

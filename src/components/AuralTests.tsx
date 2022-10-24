@@ -50,10 +50,10 @@ const AuralTests = ({
         <Typography sx={{ width: '6rem' }}>Time</Typography>
         <Typography sx={{ width: '3.5rem' }}>Level</Typography>
         <Typography sx={{ width: '10rem' }}>Student</Typography>
+        <Typography sx={{ width: '10rem' }}>Performance Time</Typography>
         <Typography sx={{ width: '3.5rem' }}>Level</Typography>
         <Typography sx={{ width: '5rem' }}>Request</Typography>
-        <Typography sx={{ width: '8rem' }}>Siblings</Typography>
-        <Typography sx={{ width: '10rem' }}>Performance Time</Typography>
+        <Typography sx={{ width: '24rem' }}>Siblings</Typography>
       </Box>
       {tests.map((test, i) => (
         <AuralTestRow
