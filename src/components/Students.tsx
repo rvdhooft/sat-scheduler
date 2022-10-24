@@ -56,7 +56,17 @@ const Students = ({
 
   return (
     <>
-      <Typography variant="h5">Students</Typography>
+      <Box display="flex" alignItems="flex-end" gap={3}>
+        <Typography variant="h5">Students</Typography>
+
+        <Typography>Total: {students.length}</Typography>
+        <Typography color={students.filter((x) => !x.performanceTime).length ? 'error' : ''}>
+          Total w/o Performance Time: {students.filter((x) => !x.performanceTime).length}
+        </Typography>
+        <Typography color={students.filter((x) => !x.auralTestTime).length ? 'error' : ''}>
+          Total w/o Aural Test Time: {students.filter((x) => !x.auralTestTime).length}
+        </Typography>
+      </Box>
       <table>
         <Box component="thead" sx={{ '& th': { textAlign: 'left', padding: '0.25rem 1rem' } }}>
           <tr>
@@ -111,15 +121,6 @@ const Students = ({
           ))}
         </tbody>
       </table>
-      <Box display="flex" gap={3} my={3}>
-        <Typography>Total: {students.length}</Typography>
-        <Typography>
-          Total w/o Performance Time: {students.filter((x) => !x.performanceTime).length}
-        </Typography>
-        <Typography>
-          Total w/o Aural Test Time: {students.filter((x) => !x.auralTestTime).length}
-        </Typography>
-      </Box>
     </>
   );
 };
