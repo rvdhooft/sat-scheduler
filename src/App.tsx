@@ -22,13 +22,13 @@ import {
   getAuralTestsDay2,
   getPerformanceRoomsDay1,
   getPerformanceRoomsDay2,
-  getStudents,
   saveAuralTestsDay1,
   saveAuralTestsDay2,
   savePerformanceRoomsDay1,
   savePerformanceRoomsDay2,
   saveStudents,
 } from './utils/localStorage';
+import { useStudents } from './contexts/studentContext';
 
 function createDefaultPerformanceRoomsDay1() {
   return [
@@ -53,7 +53,7 @@ function createDefaultPerformanceRoomsDay2() {
 }
 
 function App() {
-  const [students, setStudents] = useState<Student[]>(getStudents() || []);
+  const { students, setStudents } = useStudents();
   const [auralRoomCount, setAuralRoomCount] = useState(2);
   const [auralStudentLimit, setAuralStudentLimit] = useState(12);
   const [auralTimeAllowance, setAuralTimeAllowance] = useState(15);
@@ -90,10 +90,6 @@ function App() {
   );
   const [auralTestsDay1, setAuralTestsDay1] = useState<AuralTest[]>(getAuralTestsDay1() || []);
   const [auralTestsDay2, setAuralTestsDay2] = useState<AuralTest[]>(getAuralTestsDay2() || []);
-
-  useEffect(() => {
-    saveStudents(students);
-  }, [students]);
 
   useEffect(() => {
     savePerformanceRoomsDay1(performanceRoomsDay1);

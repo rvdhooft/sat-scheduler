@@ -3,9 +3,11 @@ import { Box, Typography } from '@mui/material';
 import { isAfter, isBefore, isEqual } from 'date-fns';
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { PerformanceRoom, SatPerformance } from '../models';
+import { PerformanceRoom, SatPerformance, Student } from '../models';
 import formatTime from '../utils/formatTime';
 import PerformanceMenu from './PerformanceMenu';
+import { useStudents } from '../contexts/studentContext';
+import getSiblings from '../utils/getSiblings';
 
 interface Props {
   performance: SatPerformance;
@@ -36,6 +38,7 @@ const PerformanceRow = ({
   commitMove,
 }: Props) => {
   const ref = useRef<HTMLTableRowElement>(null);
+  const { students } = useStudents();
 
   const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
     accept: `performance-${room.id}`,
@@ -139,7 +142,11 @@ const PerformanceRow = ({
         </Typography>
       </td>
       <td>
-        <Typography component="span">{performance.student?.siblings}</Typography>
+        {getSiblings(performance.student, students).map((x) => (
+          <div key={x.id}>
+            {x.fullName} ({formatTime(x.performanceTime)} P, {formatTime(x.auralTestTime)} A)
+          </div>
+        ))}
       </td>
       <td>
         <Typography component="span">
