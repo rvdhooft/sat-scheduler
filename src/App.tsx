@@ -321,6 +321,17 @@ function App() {
     }
   };
 
+  const handleExport = () => {
+    exportToFile(
+      students,
+      performanceRoomsDay1,
+      performanceRoomsDay2,
+      auralTestsDay1,
+      auralTestsDay2,
+      auralRoomCount
+    );
+  };
+
   function resetRooms() {
     setPerformanceRoomsDay1(performanceRoomsDay1.map((x) => ({ ...x, performances: [] })));
     setPerformanceRoomsDay2(performanceRoomsDay2.map((x) => ({ ...x, performances: [] })));
@@ -410,13 +421,7 @@ function App() {
                 >
                   Schedule
                 </Button>
-                <Button
-                  disabled={!auralTestsDay1.length}
-                  sx={{ ml: 3 }}
-                  onClick={() =>
-                    exportToFile(students, performanceRoomsDay1, auralTestsDay1, auralRoomCount)
-                  }
-                >
+                <Button disabled={!auralTestsDay1.length} sx={{ ml: 3 }} onClick={handleExport}>
                   Export
                 </Button>
                 <Button disabled={!students.length} sx={{ ml: 3 }} onClick={clear}>
