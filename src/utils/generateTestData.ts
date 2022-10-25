@@ -13,21 +13,25 @@ export default function generateTestData() {
   let siblings = undefined;
   let siblingRequest = undefined;
   let siblingCount = 0;
+  let siblingLevelMin = undefined;
+  let siblingLevelMax = undefined;
   const total = 300;
   for (let i = 0; i < total; i++) {
     const randomRequest = getRandomInt(1, 5);
-    let randomLevel = getRandomInt(0, 12);
+    let randomLevel = getRandomInt(siblingLevelMin || 0, siblingLevelMax || 12);
     // Have fewer 11s & 12s
     if (randomLevel > 10) {
       if (i % 3 === 0) {
-        randomLevel = 0;
+        randomLevel = 6;
       } else if (i % 3 === 1) {
-        randomLevel = 1;
+        randomLevel = 7;
       }
     }
     if (siblingCount == 0) {
       siblings = undefined;
       siblingRequest = undefined;
+      siblingLevelMin = undefined;
+      siblingLevelMax = undefined;
     }
     if (siblingCount > 0) {
       siblingCount--;
@@ -37,6 +41,8 @@ export default function generateTestData() {
         siblingCount = getRandomInt(1, 2);
         siblings = `Siblings ${i}`;
         siblingRequest = randomRequest;
+        siblingLevelMin = randomLevel < 6 ? 0 : 6;
+        siblingLevelMax = randomLevel < 6 ? 5 : 12;
       }
     }
 
