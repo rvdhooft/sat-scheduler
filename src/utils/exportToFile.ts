@@ -7,6 +7,7 @@ const dateFormat = 'h:mm AM/PM';
 const fileName = `SAT Schedule ${new Date().getFullYear()}.xlsx`;
 
 function addStudentsToWb(wb: WorkBook, students: Student[]) {
+  if (!students.length) return;
   const fileModels = mapToFileModels(students, true);
   const ws1 = utils.json_to_sheet(fileModels, { dateNF: dateFormat });
   autofitColumns(fileModels, ws1);
@@ -14,7 +15,10 @@ function addStudentsToWb(wb: WorkBook, students: Student[]) {
 }
 
 function addPerformanceRoomsToWb(wb: WorkBook, performanceRooms: PerformanceRoom[], day: number) {
+  if (!performanceRooms.length) return;
+  console.log(performanceRooms);
   performanceRooms.forEach((room, i) => {
+    if (!room.performances.length) return;
     const fileModels = room.performances
       .sort((a, b) => compareAsc(a.time, b.time))
       .map((x) => ({
@@ -33,6 +37,7 @@ function addAuralTestsToWb(
   auralRoomCount: number,
   day: number
 ) {
+  if (!auralTests.length || !auralTests[0].students.length) return;
   const rowsByRoom: any[] = [];
   auralTests.forEach((test, i) => {
     if (!rowsByRoom[i % auralRoomCount]) rowsByRoom[i % auralRoomCount] = [];
