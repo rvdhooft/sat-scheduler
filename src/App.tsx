@@ -34,6 +34,7 @@ import {
   createDefaultPerformanceRoomsDay1,
   createDefaultPerformanceRoomsDay2,
 } from './utils/performanceRoomDefaults';
+import isTimeDifferenceInRange from './utils/isTimeDifferenceInRange';
 
 function App() {
   const { students, setStudents } = useStudents();
@@ -160,6 +161,23 @@ function App() {
     scheduleStudentsForDay(1);
   }
 
+  function scheduleAuralTest(auralTests: AuralTest[], student: Student) {
+    const auralsInTimeRange = auralTests.filter((x) =>
+      isTimeDifferenceInRange(student.performanceTime, x.time, timeDifferenceMin, timeDifferenceMax)
+    );
+    const matches = auralsInTimeRange
+      .filter((x) => x.level === student.level && x.students.length <= auralStudentLimit)
+      .sort(
+        (a, b) =>
+          Math.abs(differenceInMinutes(a.time, student.performanceTime!)) -
+          Math.abs(differenceInMinutes(b.time, student.performanceTime!))
+      );
+    if (matches.length) {
+      matches[0].students.push(student);
+      student.auralTestTime = matches[0].time;
+    }
+  }
+
   function scheduleStudentsForDay(day: number) {
     const perfRooms: PerformanceRoom[] = (
       day === 0 ? performanceRoomsDay1 : performanceRoomsDay2
@@ -179,23 +197,9 @@ function App() {
       student.performanceTime = nextAvailableTime;
       student.performanceRoom = roomForLevel.id;
 
-      // Schedule Aural Test
-      const auralsInTimeRange = auralTests.filter((x) => {
-        const difference = Math.abs(differenceInMinutes(student.performanceTime as Date, x.time));
-        return difference >= timeDifferenceMin && difference <= timeDifferenceMax;
-      });
-      const matches = auralsInTimeRange
-        .filter((x) => x.level === student.level && x.students.length <= auralStudentLimit)
-        .sort(
-          (a, b) =>
-            Math.abs(differenceInMinutes(a.time, student.performanceTime!)) -
-            Math.abs(differenceInMinutes(b.time, student.performanceTime!))
-        );
-      if (matches.length) {
-        matches[0].students.push(student);
-        student.auralTestTime = matches[0].time;
-      }
+      scheduleAuralTest(auralTests, student);
     }
+    perfRooms.forEach((x) => x.performances.sort((a, b) => compareAsc(a.time, b.time)));
 
     // Re-assign any unused aural test spots if needed
     for (const student of students.filter((x) => !x.auralTestTime)) {
@@ -236,17 +240,35 @@ function App() {
   function reassignTimes(performances: SatPerformance[]) {
     const updatedStudents = [...students];
     for (let i = 0; i < performances.length; i++) {
+      let nextTime;
       if (i == 0) {
-        performances[i].time = morningStartTime;
-        const student = updatedStudents.find((x) => x.id === performances[i].student.id);
-        if (student) student.performanceTime = morningStartTime;
-        continue;
+        nextTime = morningStartTime;
+      } else {
+        nextTime = getNextTime(performances[i - 1]);
+        performances[i].time = nextTime;
       }
-
-      const nextTime = getNextTime(performances[i - 1]);
       performances[i].time = nextTime;
+
       const student = updatedStudents.find((x) => x.id === performances[i].student.id);
-      if (student) student.performanceTime = nextTime;
+      if (!student) continue;
+      student.performanceTime = nextTime;
+      if (
+        !student.auralTestTime ||
+        !isTimeDifferenceInRange(
+          student.performanceTime,
+          student.auralTestTime,
+          timeDifferenceMin,
+          timeDifferenceMax
+        )
+      ) {
+        const auralTests = day === 0 ? [...auralTestsDay1] : [...auralTestsDay2];
+        scheduleAuralTest(auralTests, student);
+        if (day === 0) {
+          setAuralTestsDay1(auralTests);
+        } else {
+          setAuralTestsDay2(auralTests);
+        }
+      }
     }
     setStudents(updatedStudents);
   }

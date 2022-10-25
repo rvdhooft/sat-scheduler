@@ -1,5 +1,4 @@
 import { Box, Typography } from '@mui/material';
-import { compareAsc } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { PerformanceRoom, SatPerformance } from '../models';
 import PerformanceRow from './Performance';
@@ -13,18 +12,18 @@ interface Props {
 }
 
 const PerformanceRoomTable = ({ room, allRooms, updatePerformances, moveRooms }: Props) => {
-  const [performances, setPerformances] = useState<SatPerformance[]>([]);
+  const [performances, setPerformances] = useState<SatPerformance[]>(room.performances);
 
   useEffect(() => {
-    setPerformances(room.performances.sort((a, b) => compareAsc(a.time, b.time)));
+    setPerformances(room.performances);
   }, [room.performances]);
 
   const move = (dragIndex: number, hoverIndex: number) => {
-    setPerformances(
-      update(performances, {
+    setPerformances((prev) =>
+      update(prev, {
         $splice: [
           [dragIndex, 1],
-          [hoverIndex, 0, performances[dragIndex]],
+          [hoverIndex, 0, prev[dragIndex]],
         ],
       })
     );

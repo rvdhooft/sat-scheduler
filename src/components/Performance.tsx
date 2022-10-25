@@ -1,6 +1,6 @@
 import type { Identifier, XYCoord } from 'dnd-core';
 import { Box, Typography } from '@mui/material';
-import { isAfter, isBefore, isEqual } from 'date-fns';
+import { differenceInMinutes, isAfter, isBefore, isEqual } from 'date-fns';
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { PerformanceRoom, SatPerformance, Student } from '../models';
@@ -9,6 +9,7 @@ import PerformanceMenu from './PerformanceMenu';
 import { useStudents } from '../contexts/studentContext';
 import getSiblings from '../utils/getSiblings';
 import { useSatParams } from '../contexts/paramContext';
+import isTimeDifferenceInRange from '../utils/isTimeDifferenceInRange';
 
 interface Props {
   performance: SatPerformance;
@@ -36,7 +37,8 @@ const PerformanceRow = ({
 }: Props) => {
   const ref = useRef<HTMLTableRowElement>(null);
   const { students } = useStudents();
-  const { morningEndTime, afternoonStartTime } = useSatParams();
+  const { morningEndTime, afternoonStartTime, timeDifferenceMin, timeDifferenceMax } =
+    useSatParams();
 
   const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
     accept: `performance-${room.id}`,
@@ -124,9 +126,33 @@ const PerformanceRow = ({
         <Typography component="span">{performance.student?.fullName}</Typography>
       </td>
       <td>
-        <Typography component="span">
-          {performance.student?.auralTestTime && formatTime(performance.student?.auralTestTime)}
-        </Typography>
+        {performance.student.auralTestTime ? (
+          <Typography
+            component="span"
+            color={
+              !isTimeDifferenceInRange(
+                performance.student?.performanceTime,
+                performance.student?.auralTestTime,
+                timeDifferenceMin,
+                timeDifferenceMax
+              )
+                ? 'error'
+                : ''
+            }
+          >
+            {formatTime(performance.student.auralTestTime)} (
+            {performance.student.performanceTime &&
+              Math.abs(
+                differenceInMinutes(
+                  performance.student.auralTestTime,
+                  performance.student.performanceTime
+                )
+              )}
+            m)
+          </Typography>
+        ) : (
+          <Typography color="error">None</Typography>
+        )}
       </td>
       <td>
         <Typography
