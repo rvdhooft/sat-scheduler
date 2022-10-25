@@ -56,7 +56,7 @@ const AuralTestStudent = ({ student, index, testIndex, showError }: Props) => {
       <Typography component="div" sx={{ flex: 1 }}>
         {getSiblings(student, students).map((x) => (
           <div key={x.id}>
-            {x.fullName} ({formatTime(x.performanceTime)} P,{' '}
+            {x.fullName} L{x.level} ({formatTime(x.performanceTime)} P,{' '}
             <Typography color={!x.auralTestTime ? 'error' : ''} component="span">
               {formatTime(x.auralTestTime) || 'None'}
             </Typography>{' '}
