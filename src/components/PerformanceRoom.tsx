@@ -7,21 +7,12 @@ import update from 'immutability-helper';
 
 interface Props {
   room: PerformanceRoom;
-  morningEndTime: Date;
-  afternoonStartTime: Date;
   allRooms: PerformanceRoom[];
   updatePerformances: (room: PerformanceRoom) => void;
   moveRooms: (performanceIndex: number, room: PerformanceRoom, roomId: string) => void;
 }
 
-const PerformanceRoomTable = ({
-  room,
-  morningEndTime,
-  afternoonStartTime,
-  allRooms,
-  updatePerformances,
-  moveRooms,
-}: Props) => {
+const PerformanceRoomTable = ({ room, allRooms, updatePerformances, moveRooms }: Props) => {
   const [performances, setPerformances] = useState<SatPerformance[]>([]);
 
   useEffect(() => {
@@ -68,8 +59,6 @@ const PerformanceRoomTable = ({
               index={j}
               performance={p}
               room={room}
-              morningEndTime={morningEndTime}
-              afternoonStartTime={afternoonStartTime}
               alternateRooms={getAlternateRooms(p)}
               moveRooms={(roomId) => moveRooms(j, room, roomId)}
               move={move}

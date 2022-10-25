@@ -1,56 +1,34 @@
 import update from 'immutability-helper';
 import { Box, Button, TextField } from '@mui/material';
-import { Dispatch, useState } from 'react';
+import { useState } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
-import { Level } from '../models';
+import { useSatParams } from '../contexts/paramContext';
 
-interface Props {
-  auralRoomCount: number;
-  setAuralRoomCount: Dispatch<number>;
-  auralTimeAllowance: number;
-  setAuralTimeAllowance: Dispatch<number>;
-  levels: Level[];
-  setLevels: Dispatch<Level[]>;
-  auralStudentLimit: number;
-  setAuralStudentLimit: Dispatch<number>;
-  timeDifferenceMin: number;
-  setTimeDifferenceMin: Dispatch<number>;
-  timeDifferenceMax: number;
-  setTimeDifferenceMax: Dispatch<number>;
-  siblingStartMax: number;
-  setSiblingStartMax: Dispatch<number>;
-  morningStartTime: Date;
-  setMorningStartTime: Dispatch<Date>;
-  morningEndTime: Date;
-  setMorningEndTime: Dispatch<Date>;
-  afternoonStartTime: Date;
-  setAfternoonStartTime: Dispatch<Date>;
-}
-
-const OptionFormFields = ({
-  auralRoomCount,
-  setAuralRoomCount,
-  auralTimeAllowance,
-  setAuralTimeAllowance,
-  levels,
-  setLevels,
-  auralStudentLimit,
-  setAuralStudentLimit,
-  timeDifferenceMin,
-  setTimeDifferenceMin,
-  timeDifferenceMax,
-  setTimeDifferenceMax,
-  siblingStartMax,
-  setSiblingStartMax,
-  morningStartTime,
-  setMorningStartTime,
-  morningEndTime,
-  setMorningEndTime,
-  afternoonStartTime,
-  setAfternoonStartTime,
-}: Props) => {
+const OptionFormFields = () => {
   const [showAll, setShowAll] = useState(false);
+  const {
+    auralRoomCount,
+    setAuralRoomCount,
+    auralTimeAllowance,
+    setAuralTimeAllowance,
+    levels,
+    setLevels,
+    auralStudentLimit,
+    setAuralStudentLimit,
+    timeDifferenceMin,
+    setTimeDifferenceMin,
+    timeDifferenceMax,
+    setTimeDifferenceMax,
+    siblingStartMax,
+    setSiblingStartMax,
+    morningStartTime,
+    setMorningStartTime,
+    morningEndTime,
+    setMorningEndTime,
+    afternoonStartTime,
+    setAfternoonStartTime,
+  } = useSatParams();
 
   return (
     <Box flex={1}>

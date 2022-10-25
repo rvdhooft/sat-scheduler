@@ -8,13 +8,12 @@ import formatTime from '../utils/formatTime';
 import PerformanceMenu from './PerformanceMenu';
 import { useStudents } from '../contexts/studentContext';
 import getSiblings from '../utils/getSiblings';
+import { useSatParams } from '../contexts/paramContext';
 
 interface Props {
   performance: SatPerformance;
   index: number;
   room: PerformanceRoom;
-  morningEndTime: Date;
-  afternoonStartTime: Date;
   alternateRooms: string[];
   moveRooms: (roomId: string) => void;
   move: (dragIndex: number, hoverIndex: number) => void;
@@ -30,8 +29,6 @@ const PerformanceRow = ({
   performance,
   room,
   index,
-  morningEndTime,
-  afternoonStartTime,
   alternateRooms,
   moveRooms,
   move,
@@ -39,6 +36,7 @@ const PerformanceRow = ({
 }: Props) => {
   const ref = useRef<HTMLTableRowElement>(null);
   const { students } = useStudents();
+  const { morningEndTime, afternoonStartTime } = useSatParams();
 
   const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
     accept: `performance-${room.id}`,

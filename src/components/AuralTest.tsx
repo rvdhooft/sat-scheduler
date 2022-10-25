@@ -6,13 +6,11 @@ import { AuralTest, Student } from '../models';
 import formatTime from '../utils/formatTime';
 import AuralTestStudent from './AuralTestStudent';
 import { useRef } from 'react';
+import { useSatParams } from '../contexts/paramContext';
 
 interface Props {
   test: AuralTest;
   index: number;
-  auralStudentLimit: number;
-  morningEndTime: Date;
-  afternoonStartTime: Date;
   move: (studentId: string, dragTestIndex: number, hoverTestIndex: number) => void;
   commitMove: () => void;
 }
@@ -24,16 +22,9 @@ interface DragItem {
   type: string;
 }
 
-const AuralTestRow = ({
-  test,
-  index,
-  auralStudentLimit,
-  morningEndTime,
-  afternoonStartTime,
-  move,
-  commitMove,
-}: Props) => {
+const AuralTestRow = ({ test, index, move, commitMove }: Props) => {
   const ref = useRef<HTMLTableRowElement>(null);
+  const { morningEndTime, afternoonStartTime, auralStudentLimit } = useSatParams();
 
   function showAuralError(student: Student) {
     if (test.level !== student.level) {

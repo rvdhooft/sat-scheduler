@@ -1,5 +1,6 @@
 import { Typography, Box } from '@mui/material';
 import { compareAsc, differenceInMinutes, isBefore } from 'date-fns';
+import { useSatParams } from '../contexts/paramContext';
 import { Student } from '../models';
 import formatTime from '../utils/formatTime';
 import getSiblings from '../utils/getSiblings';
@@ -7,18 +8,11 @@ import getSiblings from '../utils/getSiblings';
 interface Props {
   students: Student[];
   hasSchedule: boolean;
-  siblingStartMax: number;
-  timeDifferenceMin: number;
-  timeDifferenceMax: number;
 }
 
-const Students = ({
-  students,
-  hasSchedule,
-  siblingStartMax,
-  timeDifferenceMin,
-  timeDifferenceMax,
-}: Props) => {
+const Students = ({ students, hasSchedule }: Props) => {
+  const { timeDifferenceMin, timeDifferenceMax, siblingStartMax } = useSatParams();
+
   if (!students.length) return <Typography>None</Typography>;
 
   function showSiblingStartTimeDiffError(student: Student) {

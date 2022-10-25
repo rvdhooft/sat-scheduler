@@ -4,7 +4,7 @@ import { theme } from './theme';
 import { AppBar, Box, Button, Container, CssBaseline, Toolbar, Typography } from '@mui/material';
 import FileUpload from './components/FileUpload';
 import { useEffect, useState } from 'react';
-import { AuralTest, Level, PerformanceRoom, SatPerformance, Student } from './models';
+import { AuralTest, PerformanceRoom, SatPerformance, Student } from './models';
 import { compareAsc, addMinutes, isBefore, differenceInMinutes, isAfter, isEqual } from 'date-fns';
 import OptionFormFields from './components/OptionFormFields';
 import Students from './components/Students';
@@ -29,56 +29,27 @@ import {
   saveStudents,
 } from './utils/localStorage';
 import { useStudents } from './contexts/studentContext';
-
-function createDefaultPerformanceRoomsDay1() {
-  return [
-    { id: '1', levels: ['1a'], performances: [] },
-    { id: '2', levels: ['1b'], performances: [] },
-    { id: '3', levels: ['2'], performances: [] },
-    { id: '4', levels: ['3'], performances: [] },
-    { id: '5', levels: ['4'], performances: [] },
-    { id: '6', levels: ['5'], performances: [] },
-  ];
-}
-
-function createDefaultPerformanceRoomsDay2() {
-  return [
-    { id: '1', levels: ['6'], performances: [] },
-    { id: '2', levels: ['7'], performances: [] },
-    { id: '3', levels: ['8'], performances: [] },
-    { id: '4', levels: ['9'], performances: [] },
-    { id: '5', levels: ['10'], performances: [] },
-    { id: '6', levels: ['11', '12'], performances: [] },
-  ];
-}
+import { useSatParams } from './contexts/paramContext';
+import {
+  createDefaultPerformanceRoomsDay1,
+  createDefaultPerformanceRoomsDay2,
+} from './utils/performanceRoomDefaults';
 
 function App() {
   const { students, setStudents } = useStudents();
-  const [auralRoomCount, setAuralRoomCount] = useState(2);
-  const [auralStudentLimit, setAuralStudentLimit] = useState(12);
-  const [auralTimeAllowance, setAuralTimeAllowance] = useState(15);
-  const [levels, setLevels] = useState<Level[]>([
-    { name: '1a', timeAllowanceInMinutes: 9 },
-    { name: '1b', timeAllowanceInMinutes: 9 },
-    { name: '2', timeAllowanceInMinutes: 9 },
-    { name: '3', timeAllowanceInMinutes: 9 },
-    { name: '4', timeAllowanceInMinutes: 10 },
-    { name: '5', timeAllowanceInMinutes: 10 },
-    { name: '6', timeAllowanceInMinutes: 11 },
-    { name: '7', timeAllowanceInMinutes: 11 },
-    { name: '8', timeAllowanceInMinutes: 14 },
-    { name: '9', timeAllowanceInMinutes: 14 },
-    { name: '10', timeAllowanceInMinutes: 17 },
-    { name: '11', timeAllowanceInMinutes: 17 },
-    { name: '12', timeAllowanceInMinutes: 17 },
-  ]);
-  const [timeDifferenceMin, setTimeDifferenceMin] = useState(20);
-  const [timeDifferenceMax, setTimeDifferenceMax] = useState(60);
-  const [siblingStartMax, setSiblingStartMax] = useState(20);
-  const [morningStartTime, setMorningStartTime] = useState(new Date('2023-01-01T08:30:00'));
-  const [morningEndTime, setMorningEndTime] = useState(new Date('2023-01-01T12:00:00'));
-  const [afternoonStartTime, setAfternoonStartTime] = useState(new Date('2023-01-01T13:00:00'));
-  const afternoonEndTime = new Date('2023-01-01T16:00:00');
+  const {
+    auralRoomCount,
+    auralStudentLimit,
+    auralTimeAllowance,
+    levels,
+    timeDifferenceMin,
+    timeDifferenceMax,
+    morningStartTime,
+    morningEndTime,
+    afternoonStartTime,
+    afternoonEndTime,
+  } = useSatParams();
+
   const [tab, setTab] = useState(0);
   const [day, setDay] = useState(0);
 
@@ -373,28 +344,7 @@ function App() {
           </AppBar>
           <Container maxWidth={false} sx={{ px: 10, py: 5 }}>
             <Box display="flex">
-              <OptionFormFields
-                auralRoomCount={auralRoomCount}
-                setAuralRoomCount={setAuralRoomCount}
-                auralTimeAllowance={auralTimeAllowance}
-                setAuralTimeAllowance={setAuralTimeAllowance}
-                levels={levels}
-                setLevels={setLevels}
-                auralStudentLimit={auralStudentLimit}
-                setAuralStudentLimit={setAuralStudentLimit}
-                timeDifferenceMin={timeDifferenceMin}
-                setTimeDifferenceMin={setTimeDifferenceMin}
-                timeDifferenceMax={timeDifferenceMax}
-                setTimeDifferenceMax={setTimeDifferenceMax}
-                siblingStartMax={siblingStartMax}
-                setSiblingStartMax={setSiblingStartMax}
-                morningStartTime={morningStartTime}
-                setMorningStartTime={setMorningStartTime}
-                morningEndTime={morningEndTime}
-                setMorningEndTime={setMorningEndTime}
-                afternoonStartTime={afternoonStartTime}
-                setAfternoonStartTime={setAfternoonStartTime}
-              />
+              <OptionFormFields />
               <Box display="flex" flexDirection="column">
                 <FileUpload setStudents={handleStudentsChange} />
                 <Button color="secondary" onClick={generateTestStudents}>
@@ -474,25 +424,17 @@ function App() {
                 <Students
                   students={day === 0 ? studentsByDay(0) : studentsByDay(1)}
                   hasSchedule={auralTestsDay1.length > 0}
-                  timeDifferenceMin={timeDifferenceMin}
-                  timeDifferenceMax={timeDifferenceMax}
-                  siblingStartMax={siblingStartMax}
                 />
               </TabPanel>
               <TabPanel value={tab} index={2}>
                 <Performances
                   performanceRooms={day === 0 ? performanceRoomsDay1 : performanceRoomsDay2}
-                  morningEndTime={morningEndTime}
-                  afternoonStartTime={afternoonStartTime}
                   updatePerformances={updatePerformances}
                 />
               </TabPanel>
               <TabPanel value={tab} index={3}>
                 <AuralTests
                   auralTests={day === 0 ? auralTestsDay1 : auralTestsDay2}
-                  auralStudentLimit={auralStudentLimit}
-                  morningEndTime={morningEndTime}
-                  afternoonStartTime={afternoonStartTime}
                   updateAuralTests={updateAuralTests}
                 />
               </TabPanel>

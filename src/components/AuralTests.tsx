@@ -6,19 +6,10 @@ import update from 'immutability-helper';
 
 interface Props {
   auralTests: AuralTest[];
-  auralStudentLimit: number;
-  morningEndTime: Date;
-  afternoonStartTime: Date;
   updateAuralTests: (tests: AuralTest[]) => void;
 }
 
-const AuralTests = ({
-  auralTests,
-  auralStudentLimit,
-  morningEndTime,
-  afternoonStartTime,
-  updateAuralTests,
-}: Props) => {
+const AuralTests = ({ auralTests, updateAuralTests }: Props) => {
   const [tests, setTests] = useState<AuralTest[]>(auralTests);
 
   useEffect(() => {
@@ -60,9 +51,6 @@ const AuralTests = ({
           key={i}
           test={test}
           index={i}
-          auralStudentLimit={auralStudentLimit}
-          morningEndTime={morningEndTime}
-          afternoonStartTime={afternoonStartTime}
           move={move}
           commitMove={() => updateAuralTests(tests)}
         />

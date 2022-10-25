@@ -4,17 +4,10 @@ import PerformanceRoomTable from './PerformanceRoom';
 
 interface Props {
   performanceRooms: PerformanceRoom[];
-  morningEndTime: Date;
-  afternoonStartTime: Date;
   updatePerformances: (room: PerformanceRoom) => void;
 }
 
-const Performances = ({
-  performanceRooms,
-  morningEndTime,
-  afternoonStartTime,
-  updatePerformances,
-}: Props) => {
+const Performances = ({ performanceRooms, updatePerformances }: Props) => {
   if (!performanceRooms.length || !performanceRooms[0].performances.length)
     return <Typography>None</Typography>;
 
@@ -38,8 +31,6 @@ const Performances = ({
           <PerformanceRoomTable
             room={room}
             key={room.id}
-            morningEndTime={morningEndTime}
-            afternoonStartTime={afternoonStartTime}
             updatePerformances={updatePerformances}
             moveRooms={moveRooms}
             allRooms={performanceRooms}
