@@ -16,7 +16,6 @@ function addStudentsToWb(wb: WorkBook, students: Student[]) {
 
 function addPerformanceRoomsToWb(wb: WorkBook, performanceRooms: PerformanceRoom[], day: number) {
   if (!performanceRooms.length) return;
-  console.log(performanceRooms);
   performanceRooms.forEach((room, i) => {
     if (!room.performances.length) return;
     const fileModels = room.performances
