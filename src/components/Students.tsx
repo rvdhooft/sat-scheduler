@@ -4,6 +4,7 @@ import { useSatParams } from '../contexts/paramContext';
 import { Student } from '../models';
 import formatTime from '../utils/formatTime';
 import getSiblings from '../utils/getSiblings';
+import { mapRequestToString } from '../utils/studentMappingUtils';
 
 interface Props {
   students: Student[];
@@ -79,7 +80,7 @@ const Students = ({ students, hasSchedule }: Props) => {
             <Box component="tr" key={i} sx={{ '& td': { padding: '0.25rem 1rem' } }}>
               <td>{student.fullName}</td>
               <td>{student.level}</td>
-              <td>{student.request}</td>
+              <td>{mapRequestToString(student.request)}</td>
               <td>{student.siblings}</td>
               {hasSchedule && (
                 <>

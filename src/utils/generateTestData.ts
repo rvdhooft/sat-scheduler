@@ -1,4 +1,4 @@
-import { Student } from '../models';
+import { SchedulingRequest, Student } from '../models';
 import sortStudents from './sortStudents';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -17,7 +17,7 @@ export default function generateTestData() {
   let siblingLevelMax = undefined;
   const total = 300;
   for (let i = 0; i < total; i++) {
-    const randomRequest = getRandomInt(1, 5);
+    const randomRequest = getRandomInt(1, 12);
     let randomLevel = getRandomInt(siblingLevelMin || 0, siblingLevelMax || 12);
     // Have fewer 11s & 12s
     if (randomLevel > 10) {
@@ -53,10 +53,8 @@ export default function generateTestData() {
       fullName: 'Test Student ' + i,
       level: randomLevel === 0 ? '1a' : randomLevel === 1 ? '1b' : randomLevel.toString(),
       request:
-        (siblingRequest || randomRequest) === 1
-          ? 'AM'
-          : (siblingRequest || randomRequest) === 2
-          ? 'PM'
+        (siblingRequest || randomRequest) <= 6
+          ? ((siblingRequest || randomRequest) as SchedulingRequest)
           : undefined,
       siblings: siblings,
     });

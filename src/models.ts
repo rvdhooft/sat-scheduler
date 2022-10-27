@@ -4,7 +4,7 @@ export interface Student {
   last: string;
   fullName: string;
   level: string;
-  request?: string;
+  request?: SchedulingRequest;
   siblings?: string;
   performanceTime?: Date;
   performanceRoom?: string;
@@ -28,6 +28,12 @@ export interface PerformanceRoom {
   id: string;
   levels: string[];
   performances: SatPerformance[];
+
+  // Scheduling helpers
+  nextMorningTime?: Date;
+  latestMorningTime?: Date;
+  nextAfternoonTime?: Date;
+  latestAfternoonTime?: Date;
 }
 
 export interface SatPerformance {
@@ -44,4 +50,13 @@ export interface AuralTest {
 export interface Level {
   name: string;
   timeAllowanceInMinutes: number;
+}
+
+export enum SchedulingRequest {
+  AM = 1,
+  PM = 2,
+  LatePM = 3,
+  LateAM = 4,
+  EarlyPM = 5,
+  EarlyAM = 6,
 }

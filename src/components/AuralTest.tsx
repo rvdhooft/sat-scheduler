@@ -1,8 +1,8 @@
 import type { Identifier, XYCoord } from 'dnd-core';
 import { Box, Typography } from '@mui/material';
-import { isAfter, isBefore } from 'date-fns';
+import { addHours, isAfter, isBefore } from 'date-fns';
 import { useDrop } from 'react-dnd';
-import { AuralTest, Student } from '../models';
+import { AuralTest, SchedulingRequest, Student } from '../models';
 import formatTime from '../utils/formatTime';
 import AuralTestStudent from './AuralTestStudent';
 import { useRef } from 'react';
@@ -24,17 +24,46 @@ interface DragItem {
 
 const AuralTestRow = ({ test, index, move, commitMove }: Props) => {
   const ref = useRef<HTMLTableRowElement>(null);
-  const { morningEndTime, afternoonStartTime, auralStudentLimit } = useSatParams();
+  const {
+    morningStartTime,
+    morningEndTime,
+    afternoonStartTime,
+    afternoonEndTime,
+    auralStudentLimit,
+  } = useSatParams();
 
   function showAuralError(student: Student) {
+    if (!test || !student) return false;
+
     if (test.level !== student.level) {
       return true;
     }
     if (test.students.length > auralStudentLimit) {
       return true;
     }
-    if (student.request === 'AM' && isAfter(test.time, morningEndTime)) return true;
-    if (student.request === 'PM' && isBefore(test.time, afternoonStartTime)) return true;
+    if (student.request === SchedulingRequest.AM && isAfter(test.time, morningEndTime)) return true;
+    if (
+      student.request === SchedulingRequest.EarlyAM &&
+      isAfter(test.time, addHours(morningStartTime, 2))
+    )
+      return true;
+    if (
+      student.request === SchedulingRequest.LateAM &&
+      (isBefore(test.time, addHours(morningEndTime, -2)) || isAfter(test.time, morningEndTime))
+    )
+      return true;
+    if (student.request === SchedulingRequest.PM && isBefore(test.time, afternoonStartTime))
+      return true;
+    if (
+      student.request === SchedulingRequest.EarlyPM &&
+      isAfter(test.time, addHours(afternoonStartTime, 2))
+    )
+      return true;
+    if (
+      student.request === SchedulingRequest.LatePM &&
+      isBefore(test.time, addHours(afternoonEndTime, -2))
+    )
+      return true;
 
     return false;
   }
@@ -81,15 +110,17 @@ const AuralTestRow = ({ test, index, move, commitMove }: Props) => {
         {test.level}
       </Typography>
       <Box sx={{ flexGrow: 1 }}>
-        {test.students.map((s, j) => (
-          <AuralTestStudent
-            student={s}
-            testIndex={index}
-            index={j}
-            key={s.id}
-            showError={showAuralError(s)}
-          />
-        ))}
+        {test.students
+          .filter((x) => !!x)
+          .map((s, j) => (
+            <AuralTestStudent
+              student={s}
+              testIndex={index}
+              index={j}
+              key={s.id}
+              showError={showAuralError(s)}
+            />
+          ))}
       </Box>
     </Box>
   );

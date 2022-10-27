@@ -4,11 +4,11 @@ import getSiblings from './getSiblings';
 function computeSortScore(student: Student, students: Student[]) {
   const numSiblings = getSiblings(student, students).length;
   return student.siblings && student.request
-    ? 3 + numSiblings
+    ? 3 + numSiblings + student.request
     : student.siblings
     ? 2 + numSiblings
     : student.request
-    ? 1
+    ? 1 + student.request
     : 0;
 }
 

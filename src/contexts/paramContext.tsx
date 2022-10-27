@@ -23,6 +23,7 @@ interface Context {
   afternoonStartTime: Date;
   setAfternoonStartTime: Dispatch<Date>;
   afternoonEndTime: Date;
+  setAfternoonEndTime: Dispatch<Date>;
 }
 
 const emptyDispatch = () => {
@@ -51,6 +52,7 @@ const ParamContext = createContext<Context>({
   afternoonStartTime: new Date(),
   setAfternoonStartTime: emptyDispatch,
   afternoonEndTime: new Date(),
+  setAfternoonEndTime: emptyDispatch,
 });
 
 export const ParamProvider = ({ children }: { children: any }) => {
@@ -78,7 +80,7 @@ export const ParamProvider = ({ children }: { children: any }) => {
   const [morningStartTime, setMorningStartTime] = useState(new Date('2023-01-01T08:30:00'));
   const [morningEndTime, setMorningEndTime] = useState(new Date('2023-01-01T12:00:00'));
   const [afternoonStartTime, setAfternoonStartTime] = useState(new Date('2023-01-01T13:00:00'));
-  const afternoonEndTime = new Date('2023-01-01T16:00:00');
+  const [afternoonEndTime, setAfternoonEndTime] = useState(new Date('2023-01-01T18:00:00'));
 
   return (
     <ParamContext.Provider
@@ -104,6 +106,7 @@ export const ParamProvider = ({ children }: { children: any }) => {
         afternoonStartTime,
         setAfternoonStartTime,
         afternoonEndTime,
+        setAfternoonEndTime,
       }}
     >
       {children}

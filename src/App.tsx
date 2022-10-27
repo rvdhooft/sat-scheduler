@@ -4,8 +4,8 @@ import { theme } from './theme';
 import { AppBar, Box, Button, Container, CssBaseline, Toolbar, Typography } from '@mui/material';
 import FileUpload from './components/FileUpload';
 import { useEffect, useState } from 'react';
-import { AuralTest, PerformanceRoom, SatPerformance, Student } from './models';
-import { compareAsc, addMinutes, isBefore, differenceInMinutes, isAfter, isEqual } from 'date-fns';
+import { AuralTest, PerformanceRoom, SatPerformance, SchedulingRequest, Student } from './models';
+import { compareAsc, addMinutes, isBefore, differenceInMinutes, isAfter } from 'date-fns';
 import OptionFormFields from './components/OptionFormFields';
 import Students from './components/Students';
 import Performances from './components/Performances';
@@ -118,42 +118,13 @@ function App() {
     return tests;
   }
 
+  function getTimeAllowance(student: Student) {
+    return levels.find((x) => x.name === student.level)?.timeAllowanceInMinutes;
+  }
+
   function getNextAvailableTimeFromPerformance(performance: SatPerformance) {
-    const minutesForLevel = levels.find(
-      (x) => x.name === performance.student.level
-    )?.timeAllowanceInMinutes;
+    const minutesForLevel = getTimeAllowance(performance.student);
     return addMinutes(performance.time, minutesForLevel || 0);
-  }
-
-  function getNextMorningTime(performances: SatPerformance[]) {
-    const filtered = performances
-      .filter((x) => isBefore(x.time, morningEndTime))
-      .sort((a, b) => compareAsc(b.time, a.time));
-    if (!filtered?.length) return morningStartTime;
-    return getNextAvailableTimeFromPerformance(filtered[0]);
-  }
-
-  function getNextAfternoonTime(performances: SatPerformance[]) {
-    const filtered = performances
-      .filter((x) => x.time >= afternoonStartTime)
-      .sort((a, b) => compareAsc(b.time, a.time));
-    if (!filtered?.length) return afternoonStartTime;
-    return getNextAvailableTimeFromPerformance(filtered[0]);
-  }
-
-  function getNextAvailableTime(performances: SatPerformance[], request?: string) {
-    if (request === 'PM') {
-      return getNextAfternoonTime(performances);
-    }
-    let nextTime = getNextMorningTime(performances);
-    if (nextTime.getHours() === 10 && nextTime.getMinutes() < 15) {
-      // 15 minute break
-      nextTime = addMinutes(nextTime, 15);
-    }
-    if (isEqual(nextTime, morningEndTime) || isAfter(nextTime, morningEndTime)) {
-      return getNextAfternoonTime(performances);
-    }
-    return nextTime;
   }
 
   function scheduleStudents() {
@@ -178,41 +149,129 @@ function App() {
     }
   }
 
+  function getPerformanceTime(room: PerformanceRoom, student: Student) {
+    if (
+      !room.latestAfternoonTime ||
+      !room.latestMorningTime ||
+      !room.nextMorningTime ||
+      !room.nextAfternoonTime
+    )
+      return;
+
+    const timeAllowance = getTimeAllowance(student);
+    if (!timeAllowance) return;
+
+    if (student.request === SchedulingRequest.LateAM) {
+      let performanceTime = addMinutes(room.latestMorningTime, -1 * timeAllowance);
+      if (performanceTime.getHours() === 10 && performanceTime.getMinutes() < 15) {
+        // 15 minute break
+        performanceTime = addMinutes(performanceTime, -15);
+      }
+      if (isBefore(performanceTime, room.nextMorningTime)) {
+        // if this would cause overlap, skip to afternoon
+        return getNextAfternoonTime(room, timeAllowance);
+      }
+
+      room.latestMorningTime = performanceTime;
+      return performanceTime;
+    }
+    if (student.request === SchedulingRequest.LatePM) {
+      const performanceTime = addMinutes(room.latestAfternoonTime, -1 * timeAllowance);
+      if (isBefore(performanceTime, room.nextAfternoonTime)) return; // don't cause overlap, so just bail out
+
+      room.latestAfternoonTime = performanceTime;
+      return performanceTime;
+    }
+    if (student.request === SchedulingRequest.EarlyPM || student.request === SchedulingRequest.PM) {
+      return getNextAfternoonTime(room, timeAllowance);
+    }
+
+    // By default, schedule the next morning time
+    let nextTimeAfterPerformance = addMinutes(room.nextMorningTime, timeAllowance);
+    if (isAfter(nextTimeAfterPerformance, room.latestMorningTime)) {
+      // if we're out of morning times, skip to afternoon
+      return getNextAfternoonTime(room, timeAllowance);
+    }
+    const performanceTime = room.nextMorningTime;
+    if (nextTimeAfterPerformance.getHours() === 10 && nextTimeAfterPerformance.getMinutes() < 15) {
+      // 15 minute break
+      nextTimeAfterPerformance = addMinutes(nextTimeAfterPerformance, 15);
+    }
+    room.nextMorningTime = nextTimeAfterPerformance;
+    return performanceTime;
+  }
+
+  function getNextAfternoonTime(room: PerformanceRoom, timeAllowance: number) {
+    const nextTimeAfterPerformance = addMinutes(room.nextAfternoonTime!, timeAllowance);
+    if (isAfter(nextTimeAfterPerformance, room.latestAfternoonTime!)) return;
+
+    const performanceTime = room.nextAfternoonTime;
+    room.nextAfternoonTime = nextTimeAfterPerformance;
+    return performanceTime;
+  }
+
   function scheduleStudentsForDay(day: number) {
     const perfRooms: PerformanceRoom[] = (
       day === 0 ? performanceRoomsDay1 : performanceRoomsDay2
     ).map((x) => ({
       ...x,
       performances: [],
+      nextMorningTime: morningStartTime,
+      latestMorningTime: morningEndTime,
+      nextAfternoonTime: afternoonStartTime,
+      latestAfternoonTime: afternoonEndTime,
     }));
     const auralTests = createAuralTests(day);
+    const levelsForDay = getLevelsForDay(day);
 
-    for (const student of students) {
+    for (const student of students.filter((x) => levelsForDay.includes(x.level))) {
       // Schedule Performance
       let roomForLevel = perfRooms.find((x) => x.levels[0] === student.level);
       if (!roomForLevel) roomForLevel = perfRooms.find((x) => x.levels.includes(student.level));
       if (!roomForLevel) continue;
-      const nextAvailableTime = getNextAvailableTime(roomForLevel.performances, student.request);
-      roomForLevel.performances.push({ time: nextAvailableTime, student });
-      student.performanceTime = nextAvailableTime;
+      let performanceTime = getPerformanceTime(roomForLevel, student);
+      if (!performanceTime) {
+        // If no time is found, try another room
+        roomForLevel = perfRooms.find(
+          (x) => x.id !== roomForLevel?.id && x.levels.includes(student.level)
+        );
+        if (!roomForLevel) continue;
+        performanceTime = getPerformanceTime(roomForLevel, student);
+      }
+      if (!performanceTime) continue;
+      roomForLevel.performances.push({ time: performanceTime, student });
+      student.performanceTime = performanceTime;
       student.performanceRoom = roomForLevel.id;
 
       scheduleAuralTest(auralTests, student);
     }
-    perfRooms.forEach((x) => x.performances.sort((a, b) => compareAsc(a.time, b.time)));
+    perfRooms.forEach((x) => {
+      x.performances.sort((a, b) => compareAsc(a.time, b.time));
+      reassignTimes(x.performances, auralTests); // removes any gaps
+    });
 
-    // Re-assign any unused aural test spots if needed
-    for (const student of students.filter((x) => !x.auralTestTime)) {
+    // Go back through those without aural test times
+    // Re-assign any unused aural test spots if that helps
+    // Otherwise just give them whatever is closest
+    for (const student of students.filter(
+      (x) => !x.auralTestTime && levelsForDay.includes(x.level)
+    )) {
       if (!student.performanceTime) continue;
-      const emptyAuralsInTimeRange = auralTests.filter((x) => {
-        if (x.students.length) return false;
-        const difference = Math.abs(differenceInMinutes(student.performanceTime as Date, x.time));
-        return difference >= timeDifferenceMin && difference <= timeDifferenceMax;
-      });
-      if (!emptyAuralsInTimeRange.length) continue;
-      emptyAuralsInTimeRange[0].level = student.level;
-      emptyAuralsInTimeRange[0].students.push(student);
-      student.auralTestTime = emptyAuralsInTimeRange[0].time;
+
+      const auralsForLevelOrEmpty = auralTests.filter(
+        (x) =>
+          (x.level === student.level || !x.students.length) &&
+          Math.abs(differenceInMinutes(x.time, student.performanceTime!)) >= timeDifferenceMin
+      );
+      auralsForLevelOrEmpty.sort(
+        (a, b) =>
+          Math.abs(differenceInMinutes(a.time, student.performanceTime!)) -
+          Math.abs(differenceInMinutes(b.time, student.performanceTime!))
+      );
+      const closestAuralTest = auralsForLevelOrEmpty[0];
+      closestAuralTest.students.push(student);
+      student.auralTestTime = closestAuralTest.time;
+      closestAuralTest.level = student.level;
     }
 
     if (day === 0) {
@@ -225,26 +284,32 @@ function App() {
     saveStudents(students);
   }
 
-  function getNextTime(lastPerformance: SatPerformance) {
+  function getNextTime(lastPerformance: SatPerformance, request: SchedulingRequest | undefined) {
     let nextTime = getNextAvailableTimeFromPerformance(lastPerformance);
     if (nextTime.getHours() === 10 && nextTime.getMinutes() < 15) {
       // 15 minute break
       nextTime = addMinutes(nextTime, 15);
     }
-    if (isAfter(nextTime, morningEndTime) && isBefore(nextTime, afternoonStartTime)) {
+    if (
+      isBefore(nextTime, afternoonStartTime) &&
+      (isAfter(nextTime, morningEndTime) ||
+        request === SchedulingRequest.PM ||
+        request === SchedulingRequest.EarlyPM ||
+        request === SchedulingRequest.LatePM)
+    ) {
       return afternoonStartTime;
     }
     return nextTime;
   }
 
-  function reassignTimes(performances: SatPerformance[]) {
+  function reassignTimes(performances: SatPerformance[], auralTests: AuralTest[]) {
     const updatedStudents = [...students];
     for (let i = 0; i < performances.length; i++) {
       let nextTime;
       if (i == 0) {
         nextTime = morningStartTime;
       } else {
-        nextTime = getNextTime(performances[i - 1]);
+        nextTime = getNextTime(performances[i - 1], performances[i].student.request);
         performances[i].time = nextTime;
       }
       performances[i].time = nextTime;
@@ -261,20 +326,20 @@ function App() {
           timeDifferenceMax
         )
       ) {
-        const auralTests = day === 0 ? [...auralTestsDay1] : [...auralTestsDay2];
         scheduleAuralTest(auralTests, student);
-        if (day === 0) {
-          setAuralTestsDay1(auralTests);
-        } else {
-          setAuralTestsDay2(auralTests);
-        }
       }
     }
     setStudents(updatedStudents);
   }
 
   const updatePerformances = (room: PerformanceRoom) => {
-    reassignTimes(room.performances);
+    const auralTests = day === 0 ? [...auralTestsDay1] : [...auralTestsDay2];
+    reassignTimes(room.performances, auralTests);
+    if (day === 0) {
+      setAuralTestsDay1(auralTests);
+    } else {
+      setAuralTestsDay2(auralTests);
+    }
     if (day === 0) {
       const index = performanceRoomsDay1.findIndex((x) => x.id === room.id);
       setPerformanceRoomsDay1((prev: PerformanceRoom[]) =>

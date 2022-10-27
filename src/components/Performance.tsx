@@ -1,15 +1,16 @@
 import type { Identifier, XYCoord } from 'dnd-core';
 import { Box, Typography } from '@mui/material';
-import { differenceInMinutes, isAfter, isBefore, isEqual } from 'date-fns';
+import { addHours, differenceInMinutes, isAfter, isBefore, isEqual } from 'date-fns';
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { PerformanceRoom, SatPerformance, Student } from '../models';
+import { PerformanceRoom, SatPerformance, SchedulingRequest } from '../models';
 import formatTime from '../utils/formatTime';
 import PerformanceMenu from './PerformanceMenu';
 import { useStudents } from '../contexts/studentContext';
 import getSiblings from '../utils/getSiblings';
 import { useSatParams } from '../contexts/paramContext';
 import isTimeDifferenceInRange from '../utils/isTimeDifferenceInRange';
+import { mapRequestToString } from '../utils/studentMappingUtils';
 
 interface Props {
   performance: SatPerformance;
@@ -37,8 +38,14 @@ const PerformanceRow = ({
 }: Props) => {
   const ref = useRef<HTMLTableRowElement>(null);
   const { students } = useStudents();
-  const { morningEndTime, afternoonStartTime, timeDifferenceMin, timeDifferenceMax } =
-    useSatParams();
+  const {
+    morningStartTime,
+    morningEndTime,
+    afternoonStartTime,
+    afternoonEndTime,
+    timeDifferenceMin,
+    timeDifferenceMax,
+  } = useSatParams();
 
   const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
     accept: `performance-${room.id}`,
@@ -90,8 +97,29 @@ const PerformanceRow = ({
   }
 
   function showPerformanceRequestError(p: SatPerformance) {
-    if (p.student.request === 'AM' && isAfter(p.time, morningEndTime)) return true;
-    if (p.student.request === 'PM' && isBefore(p.time, afternoonStartTime)) return true;
+    if (p.student.request === SchedulingRequest.AM && isAfter(p.time, morningEndTime)) return true;
+    if (
+      p.student.request === SchedulingRequest.EarlyAM &&
+      isAfter(p.time, addHours(morningStartTime, 2))
+    )
+      return true;
+    if (
+      p.student.request === SchedulingRequest.LateAM &&
+      (isBefore(p.time, addHours(morningEndTime, -2)) || isAfter(p.time, morningEndTime))
+    )
+      return true;
+    if (p.student.request === SchedulingRequest.PM && isBefore(p.time, afternoonStartTime))
+      return true;
+    if (
+      p.student.request === SchedulingRequest.EarlyPM &&
+      isAfter(p.time, addHours(afternoonStartTime, 2))
+    )
+      return true;
+    if (
+      p.student.request === SchedulingRequest.LatePM &&
+      isBefore(p.time, addHours(afternoonEndTime, -2))
+    )
+      return true;
 
     return false;
   }
@@ -167,7 +195,7 @@ const PerformanceRow = ({
           component="span"
           color={showPerformanceRequestError(performance) ? 'error' : ''}
         >
-          {performance.student?.request}
+          {mapRequestToString(performance.student?.request)}
         </Typography>
       </td>
       <td>

@@ -5,6 +5,7 @@ import { useStudents } from '../contexts/studentContext';
 import { Student } from '../models';
 import formatTime from '../utils/formatTime';
 import getSiblings from '../utils/getSiblings';
+import { mapRequestToString } from '../utils/studentMappingUtils';
 
 interface Props {
   student: Student;
@@ -52,7 +53,7 @@ const AuralTestStudent = ({ student, index, testIndex, showError }: Props) => {
         {student.performanceTime ? formatTime(student.performanceTime) : ''}
       </Typography>
       <Typography sx={{ width: '3.5rem' }}>{student.level}</Typography>
-      <Typography sx={{ width: '5rem' }}>{student.request}</Typography>
+      <Typography sx={{ width: '5rem' }}>{mapRequestToString(student.request)}</Typography>
       <Typography component="div" sx={{ flex: 1 }}>
         {getSiblings(student, students).map((x) => (
           <div key={x.id}>

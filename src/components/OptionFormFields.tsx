@@ -28,6 +28,8 @@ const OptionFormFields = () => {
     setMorningEndTime,
     afternoonStartTime,
     setAfternoonStartTime,
+    afternoonEndTime,
+    setAfternoonEndTime,
   } = useSatParams();
 
   return (
@@ -85,6 +87,12 @@ const OptionFormFields = () => {
             label="Afternoon Start Time"
             value={afternoonStartTime}
             onChange={(val) => val && setAfternoonStartTime(val)}
+            renderInput={(params) => <TextField {...params} />}
+          />
+          <TimePicker
+            label="Afternoon End Time"
+            value={afternoonEndTime}
+            onChange={(val) => val && setAfternoonEndTime(val)}
             renderInput={(params) => <TextField {...params} />}
           />
           <TextField
