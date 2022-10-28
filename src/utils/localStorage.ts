@@ -56,6 +56,14 @@ export function saveAuralTestsDay2(auralTests: AuralTest[]) {
   return saveByKey('auralTestsDay2', auralTests);
 }
 
+export function clearStorage() {
+  localStorage.removeItem('students');
+  localStorage.removeItem('performanceRoomsDay1');
+  localStorage.removeItem('performanceRoomsDay2');
+  localStorage.removeItem('auralTestsDay1');
+  localStorage.removeItem('auralTestsDay2');
+}
+
 const paramsDateTimeReviver = function (key: string, value: string) {
   if (key.toLowerCase().includes('starttime') || key.toLowerCase().includes('endtime')) {
     return new Date(value);

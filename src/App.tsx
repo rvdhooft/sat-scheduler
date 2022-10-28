@@ -18,6 +18,7 @@ import generateTestData from './utils/generateTestData';
 import PerformanceRoomForm from './components/PerformanceRoomForm';
 import TabPanel from './components/TabPanel';
 import {
+  clearStorage,
   getAuralTestsDay1,
   getAuralTestsDay2,
   getPerformanceRoomsDay1,
@@ -417,7 +418,7 @@ function App() {
     setAuralTestsDay2([]);
     setPerformanceRoomsDay1(createDefaultPerformanceRoomsDay1());
     setPerformanceRoomsDay2(createDefaultPerformanceRoomsDay2());
-    localStorage.clear();
+    clearStorage();
   };
 
   return (
