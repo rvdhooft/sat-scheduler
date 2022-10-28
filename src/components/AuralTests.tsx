@@ -19,17 +19,17 @@ const AuralTests = ({ auralTests, updateAuralTests }: Props) => {
   if (!auralTests.length) return null;
 
   const move = (studentId: string, dragTestIndex: number, hoverTestIndex: number) => {
-    const studentIndex = tests[dragTestIndex].students.findIndex((x) => studentId === x.id);
-    setTests(
-      update(tests, {
+    setTests((prev) => {
+      const studentIndex = prev[dragTestIndex].students.findIndex((x) => studentId === x.id);
+      return update(prev, {
         [hoverTestIndex]: {
-          students: { $push: [tests[dragTestIndex].students[studentIndex]] },
+          students: { $push: [prev[dragTestIndex].students[studentIndex]] },
         },
         [dragTestIndex]: {
           students: { $splice: [[studentIndex, 1]] },
         },
-      })
-    );
+      });
+    });
   };
 
   return (
