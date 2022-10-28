@@ -55,3 +55,11 @@ export function saveAuralTestsDay1(auralTests: AuralTest[]) {
 export function saveAuralTestsDay2(auralTests: AuralTest[]) {
   return saveByKey('auralTestsDay2', auralTests);
 }
+
+export function getParams() {
+  return getFromJsonByKey('params');
+}
+
+export function saveParams(params: any) {
+  return saveByKey('params', params);
+}

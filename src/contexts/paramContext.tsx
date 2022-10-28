@@ -1,5 +1,6 @@
-import { createContext, Dispatch, useContext, useState } from 'react';
+import { createContext, Dispatch, useContext, useEffect, useState } from 'react';
 import { Level } from '../models';
+import { getParams, saveParams } from '../utils/localStorage';
 
 interface Context {
   auralRoomCount: number;
@@ -56,31 +57,70 @@ const ParamContext = createContext<Context>({
 });
 
 export const ParamProvider = ({ children }: { children: any }) => {
-  const [auralRoomCount, setAuralRoomCount] = useState(2);
-  const [auralStudentLimit, setAuralStudentLimit] = useState(12);
-  const [auralTimeAllowance, setAuralTimeAllowance] = useState(15);
-  const [levels, setLevels] = useState<Level[]>([
-    { name: '1a', timeAllowanceInMinutes: 9 },
-    { name: '1b', timeAllowanceInMinutes: 9 },
-    { name: '2', timeAllowanceInMinutes: 9 },
-    { name: '3', timeAllowanceInMinutes: 9 },
-    { name: '4', timeAllowanceInMinutes: 10 },
-    { name: '5', timeAllowanceInMinutes: 10 },
-    { name: '6', timeAllowanceInMinutes: 11 },
-    { name: '7', timeAllowanceInMinutes: 11 },
-    { name: '8', timeAllowanceInMinutes: 14 },
-    { name: '9', timeAllowanceInMinutes: 14 },
-    { name: '10', timeAllowanceInMinutes: 17 },
-    { name: '11', timeAllowanceInMinutes: 17 },
-    { name: '12', timeAllowanceInMinutes: 17 },
+  const params = getParams() || {};
+  const [auralRoomCount, setAuralRoomCount] = useState(params.auralRoomCount || 2);
+  const [auralStudentLimit, setAuralStudentLimit] = useState(params.auralStudentLimit || 12);
+  const [auralTimeAllowance, setAuralTimeAllowance] = useState(params.auralTimeAllowance || 15);
+  const [levels, setLevels] = useState<Level[]>(
+    params.levels || [
+      { name: '1a', timeAllowanceInMinutes: 9 },
+      { name: '1b', timeAllowanceInMinutes: 9 },
+      { name: '2', timeAllowanceInMinutes: 9 },
+      { name: '3', timeAllowanceInMinutes: 9 },
+      { name: '4', timeAllowanceInMinutes: 10 },
+      { name: '5', timeAllowanceInMinutes: 10 },
+      { name: '6', timeAllowanceInMinutes: 11 },
+      { name: '7', timeAllowanceInMinutes: 11 },
+      { name: '8', timeAllowanceInMinutes: 14 },
+      { name: '9', timeAllowanceInMinutes: 14 },
+      { name: '10', timeAllowanceInMinutes: 17 },
+      { name: '11', timeAllowanceInMinutes: 17 },
+      { name: '12', timeAllowanceInMinutes: 17 },
+    ]
+  );
+  const [timeDifferenceMin, setTimeDifferenceMin] = useState(params.timeDifferenceMin || 20);
+  const [timeDifferenceMax, setTimeDifferenceMax] = useState(params.timeDifferenceMax || 60);
+  const [siblingStartMax, setSiblingStartMax] = useState(params.siblingStartMax || 20);
+  const [morningStartTime, setMorningStartTime] = useState(
+    params.morningStartTime || new Date('2023-01-01T08:30:00')
+  );
+  const [morningEndTime, setMorningEndTime] = useState(
+    params.morningEndTime || new Date('2023-01-01T12:00:00')
+  );
+  const [afternoonStartTime, setAfternoonStartTime] = useState(
+    params.afternoonStartTime || new Date('2023-01-01T13:00:00')
+  );
+  const [afternoonEndTime, setAfternoonEndTime] = useState(
+    params.afternoonEndTime || new Date('2023-01-01T18:00:00')
+  );
+
+  useEffect(() => {
+    saveParams({
+      auralRoomCount,
+      auralStudentLimit,
+      auralTimeAllowance,
+      levels,
+      timeDifferenceMin,
+      timeDifferenceMax,
+      siblingStartMax,
+      morningStartTime,
+      morningEndTime,
+      afternoonStartTime,
+      afternoonEndTime,
+    });
+  }, [
+    auralRoomCount,
+    auralStudentLimit,
+    auralTimeAllowance,
+    levels,
+    timeDifferenceMin,
+    timeDifferenceMax,
+    siblingStartMax,
+    morningStartTime,
+    morningEndTime,
+    afternoonStartTime,
+    afternoonEndTime,
   ]);
-  const [timeDifferenceMin, setTimeDifferenceMin] = useState(20);
-  const [timeDifferenceMax, setTimeDifferenceMax] = useState(60);
-  const [siblingStartMax, setSiblingStartMax] = useState(20);
-  const [morningStartTime, setMorningStartTime] = useState(new Date('2023-01-01T08:30:00'));
-  const [morningEndTime, setMorningEndTime] = useState(new Date('2023-01-01T12:00:00'));
-  const [afternoonStartTime, setAfternoonStartTime] = useState(new Date('2023-01-01T13:00:00'));
-  const [afternoonEndTime, setAfternoonEndTime] = useState(new Date('2023-01-01T18:00:00'));
 
   return (
     <ParamContext.Provider
