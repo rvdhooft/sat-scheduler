@@ -146,6 +146,8 @@ function App() {
     if (matches.length) {
       matches[0].students.push(student);
       student.auralTestTime = matches[0].time;
+    } else {
+      student.auralTestTime = undefined;
     }
   }
 
@@ -253,6 +255,7 @@ function App() {
     // Go back through those without aural test times
     // Re-assign any unused aural test spots if that helps
     // Otherwise just give them whatever is closest
+    console.log(students.filter((x) => !x.auralTestTime && levelsForDay.includes(x.level)));
     for (const student of students.filter(
       (x) => !x.auralTestTime && levelsForDay.includes(x.level)
     )) {
