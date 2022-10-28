@@ -44,13 +44,19 @@ const PerformanceRoomForm = ({
   if (!students.length) return null;
 
   const levelOptions = levels.map((x) => x.name);
+  const levelsForDay = levels.filter((x) =>
+    performanceRooms
+      .map((y) => y.levels)
+      .flat()
+      .includes(x.name)
+  );
 
-  const totalMinutesByLevel = levels.map(({ name, timeAllowanceInMinutes }) => ({
+  const totalMinutesByLevel = levelsForDay.map(({ name, timeAllowanceInMinutes }) => ({
     level: name,
     minutes: students.filter((x) => x.level === name).length * timeAllowanceInMinutes,
   }));
   const totalMinutes = totalMinutesByLevel.reduce((sum, value) => sum + value.minutes, 0);
-  const targetMinutesPerRoom = Math.round(totalMinutes / (performanceRooms.length * 2));
+  const targetMinutesPerRoom = Math.round(totalMinutes / performanceRooms.length);
 
   const handleChange = (event: SelectChangeEvent<string[]>, roomIndex: number) => {
     const {

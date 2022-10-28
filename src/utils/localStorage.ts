@@ -56,8 +56,16 @@ export function saveAuralTestsDay2(auralTests: AuralTest[]) {
   return saveByKey('auralTestsDay2', auralTests);
 }
 
+const paramsDateTimeReviver = function (key: string, value: string) {
+  if (key.toLowerCase().includes('starttime') || key.toLowerCase().includes('endtime')) {
+    return new Date(value);
+  }
+  return value;
+};
+
 export function getParams() {
-  return getFromJsonByKey('params');
+  const data = localStorage.getItem('params');
+  return data ? JSON.parse(data, paramsDateTimeReviver) : null;
 }
 
 export function saveParams(params: any) {
