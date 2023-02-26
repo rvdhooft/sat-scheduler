@@ -36,6 +36,8 @@ import {
   createDefaultPerformanceRoomsDay2,
 } from './utils/performanceRoomDefaults';
 import isTimeDifferenceInRange from './utils/isTimeDifferenceInRange';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers';
 
 function App() {
   const { students, setStudents } = useStudents();
@@ -220,8 +222,8 @@ function App() {
       ...x,
       performances: [],
       nextMorningTime: morningStartTime,
-      latestMorningTime: morningEndTime,
-      nextAfternoonTime: afternoonStartTime,
+      latestMorningTime: x.morningEndTime,
+      nextAfternoonTime: x.afternoonStartTime,
       latestAfternoonTime: afternoonEndTime,
     }));
     const auralTests = createAuralTests(day);
@@ -250,13 +252,12 @@ function App() {
     }
     perfRooms.forEach((x) => {
       x.performances.sort((a, b) => compareAsc(a.time, b.time));
-      reassignTimes(x.performances, auralTests); // removes any gaps
+      reassignTimes(x, auralTests); // removes any gaps
     });
 
     // Go back through those without aural test times
     // Re-assign any unused aural test spots if that helps
     // Otherwise just give them whatever is closest
-    console.log(students.filter((x) => !x.auralTestTime && levelsForDay.includes(x.level)));
     for (const student of students.filter(
       (x) => !x.auralTestTime && levelsForDay.includes(x.level)
     )) {
@@ -288,7 +289,12 @@ function App() {
     saveStudents(students);
   }
 
-  function getNextTime(lastPerformance: SatPerformance, request: SchedulingRequest | undefined) {
+  function getNextTime(
+    lastPerformance: SatPerformance,
+    request: SchedulingRequest | undefined,
+    morningEndTime: Date,
+    afternoonStartTime: Date
+  ) {
     let nextTime = getNextAvailableTimeFromPerformance(lastPerformance);
     if (nextTime.getHours() === 10 && nextTime.getMinutes() < 15) {
       // 15 minute break
@@ -306,19 +312,24 @@ function App() {
     return nextTime;
   }
 
-  function reassignTimes(performances: SatPerformance[], auralTests: AuralTest[]) {
+  function reassignTimes(room: PerformanceRoom, auralTests: AuralTest[]) {
     const updatedStudents = [...students];
-    for (let i = 0; i < performances.length; i++) {
+    for (let i = 0; i < room.performances.length; i++) {
       let nextTime;
       if (i == 0) {
         nextTime = morningStartTime;
       } else {
-        nextTime = getNextTime(performances[i - 1], performances[i].student.request);
-        performances[i].time = nextTime;
+        nextTime = getNextTime(
+          room.performances[i - 1],
+          room.performances[i].student.request,
+          room.morningEndTime,
+          room.afternoonStartTime
+        );
+        room.performances[i].time = nextTime;
       }
-      performances[i].time = nextTime;
+      room.performances[i].time = nextTime;
 
-      const student = updatedStudents.find((x) => x.id === performances[i].student.id);
+      const student = updatedStudents.find((x) => x.id === room.performances[i].student.id);
       if (!student) continue;
       student.performanceTime = nextTime;
       if (
@@ -338,7 +349,7 @@ function App() {
 
   const updatePerformances = (room: PerformanceRoom) => {
     const auralTests = day === 0 ? [...auralTestsDay1] : [...auralTestsDay2];
-    reassignTimes(room.performances, auralTests);
+    reassignTimes(room, auralTests);
     if (day === 0) {
       setAuralTestsDay1(auralTests);
     } else {
@@ -425,113 +436,115 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <DndProvider backend={HTML5Backend}>
-        <main>
-          <AppBar position="static">
-            <Toolbar>
-              <Typography variant="h6" component="h1">
-                SAT Scheduler
-              </Typography>
-            </Toolbar>
-          </AppBar>
-          <Container maxWidth={false} sx={{ px: 10, py: 5 }}>
-            <Box display="flex">
-              <OptionFormFields />
-              <Box display="flex" flexDirection="column">
-                <FileUpload setStudents={handleStudentsChange} />
-                <Button color="secondary" onClick={generateTestStudents}>
-                  Generate Random Students
-                </Button>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <main>
+            <AppBar position="static">
+              <Toolbar>
+                <Typography variant="h6" component="h1">
+                  SAT Scheduler
+                </Typography>
+              </Toolbar>
+            </AppBar>
+            <Container maxWidth={false} sx={{ px: 10, py: 5 }}>
+              <Box display="flex">
+                <OptionFormFields />
+                <Box display="flex" flexDirection="column">
+                  <FileUpload setStudents={handleStudentsChange} />
+                  <Button color="secondary" onClick={generateTestStudents}>
+                    Generate Random Students
+                  </Button>
+                </Box>
               </Box>
-            </Box>
-            <Box
-              sx={{
-                position: 'sticky',
-                top: 0,
-                backgroundColor: 'white',
-                borderBottom: 1,
-                borderColor: 'divider',
-                my: 4,
-                pt: 1,
-              }}
-            >
-              <Box sx={{ position: 'absolute', top: '0.625rem', zIndex: 1 }}>
-                <Button
-                  disabled={!students.length}
-                  variant="contained"
-                  onClick={() => scheduleStudents()}
-                >
-                  Schedule
-                </Button>
-                <Button disabled={!auralTestsDay1.length} sx={{ ml: 3 }} onClick={handleExport}>
-                  Export
-                </Button>
-                <Button disabled={!students.length} sx={{ ml: 3 }} onClick={clear}>
-                  Clear
-                </Button>
-              </Box>
-              <Tabs
-                value={day}
-                onChange={(_event, newValue) => setDay(newValue)}
-                centered
+              <Box
                 sx={{
-                  '& .MuiTab-root': { width: '9rem', fontSize: '1.125rem' },
-                }}
-              >
-                <Tab label="Day 1" />
-                <Tab label="Day 2" />
-              </Tabs>
-            </Box>
-            <Box display="flex" alignItems="flex-start">
-              <Tabs
-                textColor="secondary"
-                indicatorColor="secondary"
-                orientation="vertical"
-                variant="scrollable"
-                value={tab}
-                onChange={(_event, newValue) => setTab(newValue)}
-                sx={{
-                  minWidth: '11rem',
-                  maxWidth: '9rem',
                   position: 'sticky',
-                  top: '5rem',
+                  top: 0,
+                  backgroundColor: 'white',
+                  borderBottom: 1,
+                  borderColor: 'divider',
+                  my: 4,
+                  pt: 1,
                 }}
               >
-                <Tab label="Performance Rooms" />
-                <Tab label="Students" />
-                <Tab label="Performances" />
-                <Tab label="Aural Tests" />
-              </Tabs>
-              <TabPanel value={tab} index={0}>
-                <PerformanceRoomForm
-                  performanceRooms={day === 0 ? performanceRoomsDay1 : performanceRoomsDay2}
-                  setPerformanceRooms={
-                    day === 0 ? setPerformanceRoomsDay1 : setPerformanceRoomsDay2
-                  }
-                  levels={levels}
-                  students={students}
-                />
-              </TabPanel>
-              <TabPanel value={tab} index={1}>
-                <Students
-                  students={day === 0 ? studentsByDay(0) : studentsByDay(1)}
-                  hasSchedule={auralTestsDay1.length > 0}
-                />
-              </TabPanel>
-              <TabPanel value={tab} index={2}>
-                <Performances
-                  performanceRooms={day === 0 ? performanceRoomsDay1 : performanceRoomsDay2}
-                  updatePerformances={updatePerformances}
-                />
-              </TabPanel>
-              <TabPanel value={tab} index={3}>
-                <AuralTests
-                  auralTests={day === 0 ? auralTestsDay1 : auralTestsDay2}
-                  updateAuralTests={updateAuralTests}
-                />
-              </TabPanel>
-            </Box>
-          </Container>
-        </main>
+                <Box sx={{ position: 'absolute', top: '0.625rem', zIndex: 1 }}>
+                  <Button
+                    disabled={!students.length}
+                    variant="contained"
+                    onClick={() => scheduleStudents()}
+                  >
+                    Schedule
+                  </Button>
+                  <Button disabled={!auralTestsDay1.length} sx={{ ml: 3 }} onClick={handleExport}>
+                    Export
+                  </Button>
+                  <Button disabled={!students.length} sx={{ ml: 3 }} onClick={clear}>
+                    Clear
+                  </Button>
+                </Box>
+                <Tabs
+                  value={day}
+                  onChange={(_event, newValue) => setDay(newValue)}
+                  centered
+                  sx={{
+                    '& .MuiTab-root': { width: '9rem', fontSize: '1.125rem' },
+                  }}
+                >
+                  <Tab label="Day 1" />
+                  <Tab label="Day 2" />
+                </Tabs>
+              </Box>
+              <Box display="flex" alignItems="flex-start">
+                <Tabs
+                  textColor="secondary"
+                  indicatorColor="secondary"
+                  orientation="vertical"
+                  variant="scrollable"
+                  value={tab}
+                  onChange={(_event, newValue) => setTab(newValue)}
+                  sx={{
+                    minWidth: '11rem',
+                    maxWidth: '9rem',
+                    position: 'sticky',
+                    top: '5rem',
+                  }}
+                >
+                  <Tab label="Performance Rooms" />
+                  <Tab label="Students" />
+                  <Tab label="Performances" />
+                  <Tab label="Aural Tests" />
+                </Tabs>
+                <TabPanel value={tab} index={0}>
+                  <PerformanceRoomForm
+                    performanceRooms={day === 0 ? performanceRoomsDay1 : performanceRoomsDay2}
+                    setPerformanceRooms={
+                      day === 0 ? setPerformanceRoomsDay1 : setPerformanceRoomsDay2
+                    }
+                    levels={levels}
+                    students={students}
+                  />
+                </TabPanel>
+                <TabPanel value={tab} index={1}>
+                  <Students
+                    students={day === 0 ? studentsByDay(0) : studentsByDay(1)}
+                    hasSchedule={auralTestsDay1.length > 0}
+                  />
+                </TabPanel>
+                <TabPanel value={tab} index={2}>
+                  <Performances
+                    performanceRooms={day === 0 ? performanceRoomsDay1 : performanceRoomsDay2}
+                    updatePerformances={updatePerformances}
+                  />
+                </TabPanel>
+                <TabPanel value={tab} index={3}>
+                  <AuralTests
+                    auralTests={day === 0 ? auralTestsDay1 : auralTestsDay2}
+                    updateAuralTests={updateAuralTests}
+                  />
+                </TabPanel>
+              </Box>
+            </Container>
+          </main>
+        </LocalizationProvider>
       </DndProvider>
     </ThemeProvider>
   );

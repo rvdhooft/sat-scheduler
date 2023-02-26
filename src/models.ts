@@ -28,6 +28,8 @@ export interface PerformanceRoom {
   id: string;
   levels: string[];
   performances: SatPerformance[];
+  morningEndTime: Date;
+  afternoonStartTime: Date;
 
   // Scheduling helpers
   nextMorningTime?: Date;

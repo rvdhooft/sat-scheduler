@@ -10,12 +10,14 @@ import {
   OutlinedInput,
   Select,
   SelectChangeEvent,
+  TextField,
   Typography,
 } from '@mui/material';
 import { Dispatch } from 'react';
 import { PerformanceRoom, Level, Student } from '../models';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import { TimePicker } from '@mui/x-date-pickers';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -27,6 +29,7 @@ const MenuProps = {
     },
   },
 };
+const FORM_COLUMN_WIDTH = '8.5rem';
 
 interface Props {
   performanceRooms: PerformanceRoom[];
@@ -74,10 +77,40 @@ const PerformanceRoomForm = ({
     );
   };
 
+  const handleMorningEndChange = (morningEnd: Date | null, roomIndex: number) => {
+    if (!morningEnd) return;
+
+    setPerformanceRooms(
+      update(performanceRooms, {
+        [roomIndex]: {
+          morningEndTime: { $set: morningEnd },
+        },
+      })
+    );
+  };
+
+  const handleAfternoonStartChange = (afternoonStart: Date | null, roomIndex: number) => {
+    if (!afternoonStart) return;
+
+    setPerformanceRooms(
+      update(performanceRooms, {
+        [roomIndex]: {
+          afternoonStartTime: { $set: afternoonStart },
+        },
+      })
+    );
+  };
+
   const add = () => {
     setPerformanceRooms([
       ...performanceRooms,
-      { id: (performanceRooms.length + 1).toString(), levels: [levelOptions[0]], performances: [] },
+      {
+        id: (performanceRooms.length + 1).toString(),
+        levels: [levelOptions[0]],
+        performances: [],
+        morningEndTime: new Date('2023-01-01T12:00:00'),
+        afternoonStartTime: new Date('2023-01-01T13:00:00'),
+      },
     ]);
   };
 
@@ -92,33 +125,54 @@ const PerformanceRoomForm = ({
       </Typography>
       <Box display="flex" flexWrap="wrap" gap={2}>
         {performanceRooms.map((room, i) => (
-          <FormControl key={room.id}>
-            <InputLabel id="levels">Room {room.id} Levels</InputLabel>
-            <Select
-              multiple
-              id="level"
-              labelId="levels"
-              value={room.levels}
-              onChange={(event) => handleChange(event, i)}
-              input={<OutlinedInput label={`Room ${room.id} Levels`} sx={{ width: '8rem' }} />}
-              renderValue={(selected) => selected.join(', ')}
-              MenuProps={MenuProps}
-            >
-              {levelOptions.map((name) => (
-                <MenuItem key={name} value={name}>
-                  <Checkbox checked={room.levels.indexOf(name) > -1} />
-                  <ListItemText primary={name} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Box display="flex" flexDirection="column" gap={2} key={room.id}>
+            <FormControl>
+              <InputLabel id="levels">Room {room.id} Levels</InputLabel>
+              <Select
+                multiple
+                id="level"
+                labelId="levels"
+                value={room.levels}
+                onChange={(event) => handleChange(event, i)}
+                input={
+                  <OutlinedInput
+                    label={`Room ${room.id} Levels`}
+                    sx={{ width: FORM_COLUMN_WIDTH }}
+                  />
+                }
+                renderValue={(selected) => selected.join(', ')}
+                MenuProps={MenuProps}
+              >
+                {levelOptions.map((name) => (
+                  <MenuItem key={name} value={name}>
+                    <Checkbox checked={room.levels.indexOf(name) > -1} />
+                    <ListItemText primary={name} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TimePicker
+              label="Morning End Time"
+              value={room.morningEndTime}
+              onChange={(val) => handleMorningEndChange(val, i)}
+              renderInput={(params) => <TextField {...params} sx={{ width: FORM_COLUMN_WIDTH }} />}
+            />
+            <TimePicker
+              label="Afternoon Start Time"
+              value={room.afternoonStartTime}
+              onChange={(val) => handleAfternoonStartChange(val, i)}
+              renderInput={(params) => <TextField {...params} sx={{ width: FORM_COLUMN_WIDTH }} />}
+            />
+          </Box>
         ))}
-        <IconButton color="secondary" onClick={add} title="Add Room">
-          <AddIcon />
-        </IconButton>
-        <IconButton color="secondary" onClick={remove} title="Remove Room">
-          <RemoveIcon />
-        </IconButton>
+        <div>
+          <IconButton color="secondary" onClick={add} title="Add Room">
+            <AddIcon />
+          </IconButton>
+          <IconButton color="secondary" onClick={remove} title="Remove Room">
+            <RemoveIcon />
+          </IconButton>
+        </div>
       </Box>
       <Box display="flex" alignItems="flex-end" mt={3}>
         <Box mr={7}>
