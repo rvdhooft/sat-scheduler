@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { Dispatch } from 'react';
 import { FileUploader } from 'react-drag-drop-files';
 import { read, utils } from 'xlsx';
@@ -26,7 +26,32 @@ const FileUpload = ({ setStudents }: Props) => {
   };
 
   return (
-    <Box flex={1} mb={2} sx={{ '& label': { height: '100%', px: 4, minWidth: '23rem' } }}>
+    <Box
+      flex={1}
+      mb={2}
+      position="relative"
+      sx={{ '& label': { height: '100%', px: 4, minWidth: '23rem' } }}
+    >
+      <Typography
+        align="center"
+        fontSize="0.75rem"
+        sx={{
+          maxWidth: '508px',
+          position: 'absolute',
+          color: '#666666',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          py: 2,
+          px: 4,
+          zIndex: 1,
+        }}
+      >
+        Expected Columns:
+        <br /> Student First Name, Student Last Name,
+        <br /> SAT Level, Scheduling Requests,
+        <br /> Siblings Testing on the Same Day
+      </Typography>
       <FileUploader handleChange={handleFileChange} name="file" types={['xlsx', 'xls']} />
     </Box>
   );
