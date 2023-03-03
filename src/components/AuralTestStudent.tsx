@@ -44,7 +44,8 @@ const AuralTestStudent = ({ student, index, testIndex, showError }: Props) => {
         '& > *': { pr: 2 },
         color: (theme) => (showError ? theme.palette.error.main : ''),
         '&:hover': {
-          backgroundColor: '#f1f1f1',
+          backgroundColor: '#efeaea',
+          outline: '2px solid #efeaea',
         },
       }}
     >

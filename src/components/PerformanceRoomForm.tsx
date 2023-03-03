@@ -18,6 +18,7 @@ import { PerformanceRoom, Level, Student } from '../models';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { TimePicker } from '@mui/x-date-pickers';
+import formatTime from '../utils/formatTime';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -163,6 +164,14 @@ const PerformanceRoomForm = ({
               onChange={(val) => handleAfternoonStartChange(val, i)}
               renderInput={(params) => <TextField {...params} sx={{ width: FORM_COLUMN_WIDTH }} />}
             />
+            <Typography>
+              <Box component="small" display="block" color="#666">
+                End of Day
+              </Box>
+              {room.performances?.length > 0
+                ? formatTime(room.performances[room.performances.length - 1].time)
+                : '--'}
+            </Typography>
           </Box>
         ))}
         <div>

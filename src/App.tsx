@@ -5,7 +5,7 @@ import { AppBar, Box, Button, Container, CssBaseline, Toolbar, Typography } from
 import FileUpload from './components/FileUpload';
 import { useEffect, useState } from 'react';
 import { AuralTest, PerformanceRoom, SatPerformance, SchedulingRequest, Student } from './models';
-import { compareAsc, addMinutes, isBefore, differenceInMinutes, isAfter } from 'date-fns';
+import { compareAsc, addMinutes, isBefore, isEqual, differenceInMinutes, isAfter } from 'date-fns';
 import OptionFormFields from './components/OptionFormFields';
 import Students from './components/Students';
 import Performances from './components/Performances';
@@ -135,7 +135,18 @@ function App() {
     scheduleStudentsForDay(1);
   }
 
+  function clearExistingAuralTest(auralTests: AuralTest[], student: Student) {
+    if (!student.auralTestTime) return;
+
+    const auralTestsForTime = auralTests.filter((x) => isEqual(x.time, student.auralTestTime!));
+    auralTestsForTime.forEach(
+      (auralTest: AuralTest) =>
+        (auralTest.students = auralTest.students.filter((x) => x.id !== student.id))
+    );
+  }
+
   function scheduleAuralTest(auralTests: AuralTest[], student: Student) {
+    clearExistingAuralTest(auralTests, student);
     const auralsInTimeRange = auralTests.filter((x) =>
       isTimeDifferenceInRange(student.performanceTime, x.time, timeDifferenceMin, timeDifferenceMax)
     );
@@ -334,6 +345,7 @@ function App() {
       student.performanceTime = nextTime;
       if (
         !student.auralTestTime ||
+        // if aural test needs to change
         !isTimeDifferenceInRange(
           student.performanceTime,
           student.auralTestTime,

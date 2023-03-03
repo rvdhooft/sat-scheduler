@@ -11,6 +11,14 @@ interface Props {
 
 const AuralTests = ({ auralTests, updateAuralTests }: Props) => {
   const [tests, setTests] = useState<AuralTest[]>(auralTests);
+  const testStudents = tests
+    .map((x) => x.students)
+    .flat()
+    .reduce((result: any, b) => {
+      result[b.fullName] = (result[b.fullName] || 0) + 1;
+      return result;
+    }, {});
+  const duplicates = Object.keys(testStudents).filter((a) => testStudents[a] > 1);
 
   useEffect(() => {
     setTests(auralTests);
@@ -37,7 +45,15 @@ const AuralTests = ({ auralTests, updateAuralTests }: Props) => {
       <Typography variant="h5" component="h3" mb={2}>
         Aural Tests
       </Typography>
-      <Box display="flex" sx={{ '& *': { pr: 2, fontWeight: 'bold' } }}>
+
+      {duplicates.length > 0 && (
+        <Typography color="error" mb={2}>
+          <strong>Duplicates Found:</strong>
+          <br /> {duplicates.join(', ')}
+        </Typography>
+      )}
+
+      <Box display="flex" p={1} sx={{ '& *': { pr: 2, fontWeight: 'bold' } }}>
         <Typography sx={{ width: '6rem' }}>Time</Typography>
         <Typography sx={{ width: '3.5rem' }}>Level</Typography>
         <Typography sx={{ width: '10rem' }}>Student</Typography>
