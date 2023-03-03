@@ -59,7 +59,7 @@ const AuralTestRow = ({ test, index, move, commitMove }: Props) => {
   drop(ref);
 
   return (
-    <Box p={1} sx={index % 2 === 0 ? { background: '#f5f3f3' } : {}}>
+    <Box p={1} mx={-1} sx={index % 2 === 0 ? { background: '#f5f3f3' } : {}}>
       <Box ref={ref} display="flex">
         <Typography pr={2} sx={{ width: '6rem' }}>
           {formatTime(test.time)}

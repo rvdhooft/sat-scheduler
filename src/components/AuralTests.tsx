@@ -53,7 +53,7 @@ const AuralTests = ({ auralTests, updateAuralTests }: Props) => {
         </Typography>
       )}
 
-      <Box display="flex" p={1} sx={{ '& *': { pr: 2, fontWeight: 'bold' } }}>
+      <Box display="flex" sx={{ '& *': { pr: 2, fontWeight: 'bold' } }}>
         <Typography sx={{ width: '6rem' }}>Time</Typography>
         <Typography sx={{ width: '3.5rem' }}>Level</Typography>
         <Typography sx={{ width: '10rem' }}>Student</Typography>

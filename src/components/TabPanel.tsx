@@ -12,7 +12,7 @@ const TabPanel = ({ children, value, index, ...other }: Props) => {
       role="tabpanel"
       hidden={value !== index}
       {...other}
-      sx={{ borderLeft: 1, borderColor: 'divider', width: '100%' }}
+      sx={{ borderLeft: 1, borderColor: 'divider' }}
     >
       <Box sx={{ px: 3, py: 1, visibility: value === index ? 'visible' : 'hidden' }}>
         {children}
