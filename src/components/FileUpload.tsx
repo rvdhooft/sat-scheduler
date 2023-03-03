@@ -30,7 +30,20 @@ const FileUpload = ({ setStudents }: Props) => {
       flex={1}
       mb={2}
       position="relative"
-      sx={{ '& label': { height: '100%', px: 4, minWidth: '23rem' } }}
+      sx={{
+        '& label': {
+          height: '100%',
+          minHeight: '13rem',
+          px: 4,
+          pt: 4,
+          minWidth: '23rem',
+          alignItems: 'start',
+        },
+        '& label > div': {
+          mt: 1,
+          ml: 0.5,
+        },
+      }}
     >
       <Typography
         align="center"

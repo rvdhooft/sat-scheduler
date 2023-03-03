@@ -53,7 +53,7 @@ const AuralTestStudent = ({ student, index, testIndex, showError }: Props) => {
         {student.performanceTime ? formatTime(student.performanceTime) : ''}
       </Typography>
       <Typography sx={{ width: '3.5rem' }}>{student.level}</Typography>
-      <Typography sx={{ width: '5rem' }}>{mapRequestToString(student.request)}</Typography>
+      <Typography sx={{ width: '6rem' }}>{mapRequestToString(student.request)}</Typography>
       <Typography component="div" sx={{ flex: 1 }}>
         {getSiblings(student, students).map((x) => (
           <div key={x.id}>

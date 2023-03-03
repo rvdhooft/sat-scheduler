@@ -43,7 +43,7 @@ const AuralTests = ({ auralTests, updateAuralTests }: Props) => {
         <Typography sx={{ width: '10rem' }}>Student</Typography>
         <Typography sx={{ width: '10rem' }}>Performance Time</Typography>
         <Typography sx={{ width: '3.5rem' }}>Level</Typography>
-        <Typography sx={{ width: '5rem' }}>Request</Typography>
+        <Typography sx={{ width: '6rem' }}>Request</Typography>
         <Typography sx={{ width: '24rem' }}>Siblings</Typography>
       </Box>
       {tests.map((test, i) => (
