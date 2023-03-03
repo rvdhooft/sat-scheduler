@@ -138,7 +138,7 @@ const PerformanceRow = ({
         opacity,
         cursor: 'move',
         '&:hover': {
-          backgroundColor: '#f1f1f1',
+          backgroundColor: '#efeaea',
         },
       }}
     >
