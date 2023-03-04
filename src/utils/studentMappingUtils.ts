@@ -22,7 +22,7 @@ export function mapToFileModel(student: Student, includeSchedule?: boolean): Stu
       'Performance Time': student.performanceTime,
       'Performance Room': `Performance Room ${student.performanceRoom}`,
       'Aural Test Time': student.auralTestTime,
-      'Aural Test Room': `Aural Test Room ${student.auralTestRoom}`,
+      'Aural Test Room': student.auralTestRoom ? `Aural Test Room ${student.auralTestRoom}` : null,
     };
   }
   return res;

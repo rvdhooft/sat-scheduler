@@ -89,6 +89,19 @@ function autofitColumns(json: any[], worksheet: WorkSheet, header?: string[]) {
   worksheet['!cols'] = wscols;
 }
 
+function getAuralTestRoom(
+  student: Student,
+  auralTestsDay1: AuralTest[],
+  auralTestsDay2: AuralTest[],
+  auralRoomCount: number
+) {
+  let index = auralTestsDay1.findIndex((x) => x.students.find((y) => y.id === student.id));
+  if (index >= 0) return (index % auralRoomCount) + 1;
+
+  index = auralTestsDay2.findIndex((x) => x.students.find((y) => y.id === student.id));
+  if (index >= 0) return (index % auralRoomCount) + 1;
+}
+
 function exportToFile(
   students: Student[],
   performanceRoomsDay1: PerformanceRoom[],
@@ -101,12 +114,12 @@ function exportToFile(
 
   addStudentsToWb(
     wb,
-    students.map((x, i) => ({
+    students.map((x) => ({
       ...x,
       performanceRoom: [...performanceRoomsDay1, ...performanceRoomsDay2].find((y) =>
         y.performances.find((z) => z.student.id === x.id)
       )?.id,
-      auralTestRoom: (i % auralRoomCount) + 1,
+      auralTestRoom: getAuralTestRoom(x, auralTestsDay1, auralTestsDay2, auralRoomCount),
     }))
   );
   addPerformanceRoomsToWb(wb, performanceRoomsDay1, 0);
