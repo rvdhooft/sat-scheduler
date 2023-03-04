@@ -101,7 +101,13 @@ function exportToFile(
 
   addStudentsToWb(
     wb,
-    students.map((x, i) => ({ ...x, auralTestRoom: (i % auralRoomCount) + 1 }))
+    students.map((x, i) => ({
+      ...x,
+      performanceRoom: [...performanceRoomsDay1, ...performanceRoomsDay2].find((y) =>
+        y.performances.find((z) => z.student.id === x.id)
+      )?.id,
+      auralTestRoom: (i % auralRoomCount) + 1,
+    }))
   );
   addPerformanceRoomsToWb(wb, performanceRoomsDay1, 0);
   addPerformanceRoomsToWb(wb, performanceRoomsDay2, 1);

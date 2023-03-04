@@ -55,7 +55,7 @@ function App() {
   } = useSatParams();
 
   const [tab, setTab] = useState(0);
-  const [day, setDay] = useState(0);
+  const [day, setDay] = useState(1);
 
   const [performanceRoomsDay1, setPerformanceRoomsDay1] = useState<PerformanceRoom[]>(
     getPerformanceRoomsDay1() || createDefaultPerformanceRoomsDay1()
@@ -264,7 +264,6 @@ function App() {
       if (!performanceTime) continue;
       roomForLevel.performances.push({ time: performanceTime, student });
       student.performanceTime = performanceTime;
-      student.performanceRoom = roomForLevel.id;
 
       scheduleAuralTest(auralTests, student);
     }
@@ -399,6 +398,7 @@ function App() {
   };
 
   const updateAuralTests = (tests: AuralTest[]) => {
+    console.log(tests);
     const updatedStudents = [...students];
     for (const test of tests) {
       for (const s of test.students) {
@@ -415,6 +415,7 @@ function App() {
   };
 
   const handleExport = () => {
+    console.log(auralTestsDay2);
     exportToFile(
       students,
       performanceRoomsDay1,
