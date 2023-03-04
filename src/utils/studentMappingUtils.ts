@@ -20,7 +20,9 @@ export function mapToFileModel(student: Student, includeSchedule?: boolean): Stu
     res = {
       ...res,
       'Performance Time': student.performanceTime,
-      'Performance Room': `Performance Room ${student.performanceRoom}`,
+      'Performance Room': student.performanceRoom
+        ? `Performance Room ${student.performanceRoom}`
+        : undefined,
       'Aural Test Time': student.auralTestTime,
       'Aural Test Room': student.auralTestRoom
         ? `Aural Test Room ${student.auralTestRoom}`
