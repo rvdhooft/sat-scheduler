@@ -62,6 +62,7 @@ export function clearStorage() {
   localStorage.removeItem('performanceRoomsDay2');
   localStorage.removeItem('auralTestsDay1');
   localStorage.removeItem('auralTestsDay2');
+  localStorage.removeItem('params');
 }
 
 const paramsDateTimeReviver = function (key: string, value: string) {

@@ -41,7 +41,6 @@ const PerformanceRow = ({
   const {
     morningStartTime,
     morningEndTime,
-    afternoonStartTime,
     afternoonEndTime,
     timeDifferenceMin,
     timeDifferenceMax,
@@ -108,11 +107,11 @@ const PerformanceRow = ({
       (isBefore(p.time, addHours(morningEndTime, -2)) || isAfter(p.time, morningEndTime))
     )
       return true;
-    if (p.student.request === SchedulingRequest.PM && isBefore(p.time, afternoonStartTime))
+    if (p.student.request === SchedulingRequest.PM && isBefore(p.time, room.afternoonStartTime))
       return true;
     if (
       p.student.request === SchedulingRequest.EarlyPM &&
-      isAfter(p.time, addHours(afternoonStartTime, 2))
+      isAfter(p.time, addHours(room.afternoonStartTime, 2))
     )
       return true;
     if (
@@ -126,6 +125,7 @@ const PerformanceRow = ({
 
   function showPerformanceTimeError(p: SatPerformance, room: PerformanceRoom) {
     if (room.performances.filter((x) => isEqual(x.time, p.time)).length > 1) return true;
+    if (isAfter(p.time, afternoonEndTime)) return true;
   }
 
   return (

@@ -31,6 +31,11 @@ const emptyDispatch = () => {
   throw new Error('No context available');
 };
 
+const MORNING_START_TIME = new Date('2023-01-01T08:45:00');
+const MORNING_END_TIME = new Date('2023-01-01T12:00:00');
+const AFTERNOON_START_TIME = new Date('2023-01-01T13:00:00');
+const AFTERNOON_END_TIME = new Date('2023-01-01T16:00:00');
+
 const ParamContext = createContext<Context>({
   auralRoomCount: 0,
   setAuralRoomCount: emptyDispatch,
@@ -46,13 +51,13 @@ const ParamContext = createContext<Context>({
   setTimeDifferenceMax: emptyDispatch,
   siblingStartMax: 0,
   setSiblingStartMax: emptyDispatch,
-  morningStartTime: new Date(),
+  morningStartTime: MORNING_START_TIME,
   setMorningStartTime: emptyDispatch,
-  morningEndTime: new Date(),
+  morningEndTime: MORNING_END_TIME,
   setMorningEndTime: emptyDispatch,
-  afternoonStartTime: new Date(),
+  afternoonStartTime: AFTERNOON_START_TIME,
   setAfternoonStartTime: emptyDispatch,
-  afternoonEndTime: new Date(),
+  afternoonEndTime: AFTERNOON_END_TIME,
   setAfternoonEndTime: emptyDispatch,
 });
 
@@ -82,16 +87,14 @@ export const ParamProvider = ({ children }: { children: any }) => {
   const [timeDifferenceMax, setTimeDifferenceMax] = useState(params.timeDifferenceMax || 60);
   const [siblingStartMax, setSiblingStartMax] = useState(params.siblingStartMax || 20);
   const [morningStartTime, setMorningStartTime] = useState(
-    params.morningStartTime || new Date('2023-01-01T08:30:00')
+    params.morningStartTime || MORNING_START_TIME
   );
-  const [morningEndTime, setMorningEndTime] = useState(
-    params.morningEndTime || new Date('2023-01-01T12:00:00')
-  );
+  const [morningEndTime, setMorningEndTime] = useState(params.morningEndTime || MORNING_END_TIME);
   const [afternoonStartTime, setAfternoonStartTime] = useState(
-    params.afternoonStartTime || new Date('2023-01-01T13:00:00')
+    params.afternoonStartTime || AFTERNOON_START_TIME
   );
   const [afternoonEndTime, setAfternoonEndTime] = useState(
-    params.afternoonEndTime || new Date('2023-01-01T18:00:00')
+    params.afternoonEndTime || AFTERNOON_END_TIME
   );
 
   useEffect(() => {

@@ -41,8 +41,6 @@ export function mapFromFileModel(student: StudentFileModel): Student {
     level: student['SAT Level'].toString(),
     request: mapRequestFromFileModel(student['Scheduling Requests']),
     siblings: student['Siblings Testing on the Same Day'],
-    performanceTime: student['Performance Time'],
-    auralTestTime: student['Aural Test Time'],
   };
 }
 

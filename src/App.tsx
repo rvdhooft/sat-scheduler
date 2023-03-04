@@ -165,7 +165,7 @@ function App() {
     }
   }
 
-  function getPerformanceTime(room: PerformanceRoom, student: Student) {
+  function getPerformanceTime(room: PerformanceRoom, student: Student, forceAdd = false) {
     if (
       !room.latestAfternoonTime ||
       !room.latestMorningTime ||
@@ -185,7 +185,7 @@ function App() {
       }
       if (isBefore(performanceTime, room.nextMorningTime)) {
         // if this would cause overlap, skip to afternoon
-        return getNextAfternoonTime(room, timeAllowance);
+        return getNextAfternoonTime(room, timeAllowance, forceAdd);
       }
 
       room.latestMorningTime = performanceTime;
@@ -199,14 +199,14 @@ function App() {
       return performanceTime;
     }
     if (student.request === SchedulingRequest.EarlyPM || student.request === SchedulingRequest.PM) {
-      return getNextAfternoonTime(room, timeAllowance);
+      return getNextAfternoonTime(room, timeAllowance, forceAdd);
     }
 
     // By default, schedule the next morning time
     let nextTimeAfterPerformance = addMinutes(room.nextMorningTime, timeAllowance);
     if (isAfter(nextTimeAfterPerformance, room.latestMorningTime)) {
       // if we're out of morning times, skip to afternoon
-      return getNextAfternoonTime(room, timeAllowance);
+      return getNextAfternoonTime(room, timeAllowance, forceAdd);
     }
     const performanceTime = room.nextMorningTime;
     if (nextTimeAfterPerformance.getHours() === 10 && nextTimeAfterPerformance.getMinutes() < 15) {
@@ -217,9 +217,9 @@ function App() {
     return performanceTime;
   }
 
-  function getNextAfternoonTime(room: PerformanceRoom, timeAllowance: number) {
+  function getNextAfternoonTime(room: PerformanceRoom, timeAllowance: number, forceAdd = false) {
     const nextTimeAfterPerformance = addMinutes(room.nextAfternoonTime!, timeAllowance);
-    if (isAfter(nextTimeAfterPerformance, room.latestAfternoonTime!)) return;
+    if (!forceAdd && isAfter(nextTimeAfterPerformance, room.latestAfternoonTime!)) return;
 
     const performanceTime = room.nextAfternoonTime;
     room.nextAfternoonTime = nextTimeAfterPerformance;
@@ -248,11 +248,18 @@ function App() {
       let performanceTime = getPerformanceTime(roomForLevel, student);
       if (!performanceTime) {
         // If no time is found, try another room
-        roomForLevel = perfRooms.find(
+        const additionalRoom = perfRooms.find(
           (x) => x.id !== roomForLevel?.id && x.levels.includes(student.level)
         );
-        if (!roomForLevel) continue;
-        performanceTime = getPerformanceTime(roomForLevel, student);
+        if (additionalRoom) {
+          performanceTime = getPerformanceTime(additionalRoom, student);
+          if (performanceTime) {
+            roomForLevel = additionalRoom;
+          }
+        }
+        if (!performanceTime) {
+          performanceTime = getPerformanceTime(roomForLevel, student, true);
+        }
       }
       if (!performanceTime) continue;
       roomForLevel.performances.push({ time: performanceTime, student });
@@ -285,6 +292,7 @@ function App() {
           Math.abs(differenceInMinutes(b.time, student.performanceTime!))
       );
       const closestAuralTest = auralsForLevelOrEmpty[0];
+      if (!closestAuralTest) return;
       closestAuralTest.students.push(student);
       student.auralTestTime = closestAuralTest.time;
       closestAuralTest.level = student.level;
@@ -489,7 +497,7 @@ function App() {
                   <Button disabled={!auralTestsDay1.length} sx={{ ml: 3 }} onClick={handleExport}>
                     Export
                   </Button>
-                  <Button disabled={!students.length} sx={{ ml: 3 }} onClick={clear}>
+                  <Button sx={{ ml: 3 }} onClick={clear}>
                     Clear
                   </Button>
                 </Box>
