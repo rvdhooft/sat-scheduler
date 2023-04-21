@@ -1,13 +1,14 @@
-import update from 'immutability-helper';
 import { Box, Button, TextField } from '@mui/material';
+import { TimePicker } from '@mui/x-date-pickers';
+import update from 'immutability-helper';
 import { useState } from 'react';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
-import { useSatParams } from '../contexts/paramContext';
+import { shallow } from 'zustand/shallow';
+import { useAppStore } from '../store/useAppStore';
 
 const OptionFormFields = () => {
   const [showAll, setShowAll] = useState(false);
-  const {
+
+  const [
     auralRoomCount,
     setAuralRoomCount,
     auralTimeAllowance,
@@ -30,7 +31,33 @@ const OptionFormFields = () => {
     setAfternoonStartTime,
     afternoonEndTime,
     setAfternoonEndTime,
-  } = useSatParams();
+  ] = useAppStore(
+    (state) => [
+      state.auralRoomCount,
+      state.setAuralRoomCount,
+      state.auralTimeAllowance,
+      state.setAuralTimeAllowance,
+      state.levels,
+      state.setLevels,
+      state.auralStudentLimit,
+      state.setAuralStudentLimit,
+      state.timeDifferenceMin,
+      state.setTimeDifferenceMin,
+      state.timeDifferenceMax,
+      state.setTimeDifferenceMax,
+      state.siblingStartMax,
+      state.setSiblingStartMax,
+      state.morningStartTime,
+      state.setMorningStartTime,
+      state.morningEndTime,
+      state.setMorningEndTime,
+      state.afternoonStartTime,
+      state.setAfternoonStartTime,
+      state.afternoonEndTime,
+      state.setAfternoonEndTime,
+    ],
+    shallow
+  );
 
   return (
     <Box flex={1}>

@@ -1,8 +1,8 @@
 import { Box, Typography } from '@mui/material';
-import { Dispatch } from 'react';
 import { FileUploader } from 'react-drag-drop-files';
 import { read, utils } from 'xlsx';
-import { Student, StudentFileModel } from '../models';
+import { StudentFileModel } from '../models';
+import { useAppStore } from '../store/useAppStore';
 import { mapFromFileModels } from '../utils/studentMappingUtils';
 
 async function mapFileToStudents(file: File) {
@@ -15,14 +15,12 @@ async function mapFileToStudents(file: File) {
   return mapFromFileModels(students);
 }
 
-interface Props {
-  setStudents: Dispatch<Student[]>;
-}
+const FileUpload = () => {
+  const importStudents = useAppStore((state) => state.importStudents);
 
-const FileUpload = ({ setStudents }: Props) => {
   const handleFileChange = async (file: any) => {
     const students = (await mapFileToStudents(file)) || [];
-    setStudents(students);
+    importStudents(students);
   };
 
   return (

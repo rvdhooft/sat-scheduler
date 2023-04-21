@@ -2,10 +2,10 @@ import { Box, Typography } from '@mui/material';
 import type { Identifier, XYCoord } from 'dnd-core';
 import { useRef } from 'react';
 import { useDrop } from 'react-dnd';
-import { useSatParams } from '../contexts/paramContext';
 import { AuralTest } from '../models';
 import formatTime from '../utils/formatTime';
 import AuralTestStudent from './AuralTestStudent';
+import { useAppStore } from '../store/useAppStore';
 
 interface Props {
   test: AuralTest;
@@ -23,7 +23,7 @@ interface DragItem {
 
 const AuralTestRow = ({ test, index, move, commitMove }: Props) => {
   const ref = useRef<HTMLTableRowElement>(null);
-  const { auralStudentLimit } = useSatParams();
+  const auralStudentLimit = useAppStore((state) => state.auralStudentLimit);
 
   const [, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
     accept: 'aural-test-student',
@@ -72,12 +72,12 @@ const AuralTestRow = ({ test, index, move, commitMove }: Props) => {
             .filter((x) => !!x)
             .map((s, j) => (
               <AuralTestStudent
-                student={s}
+                studentId={s}
                 testIndex={index}
                 testLevel={test.level}
                 testTime={test.time}
                 index={j}
-                key={s.id}
+                key={s}
               />
             ))}
         </Box>

@@ -14,7 +14,12 @@ function addStudentsToWb(wb: WorkBook, students: Student[]) {
   utils.book_append_sheet(wb, ws1, 'Students');
 }
 
-function addPerformanceRoomsToWb(wb: WorkBook, performanceRooms: PerformanceRoom[], day: number) {
+function addPerformanceRoomsToWb(
+  wb: WorkBook,
+  performanceRooms: PerformanceRoom[],
+  students: Student[],
+  day: number
+) {
   if (!performanceRooms.length) return;
   performanceRooms.forEach((room, i) => {
     if (!room.performances.length) return;
@@ -22,7 +27,7 @@ function addPerformanceRoomsToWb(wb: WorkBook, performanceRooms: PerformanceRoom
       .sort((a, b) => compareAsc(a.time, b.time))
       .map((x) => ({
         'Performance Time': x.time,
-        ...mapToFileModel(x.student),
+        ...mapToFileModel(students.find((y) => y.id === x.student)),
       }));
     const ws = utils.json_to_sheet(fileModels, { dateNF: dateFormat });
     autofitColumns(fileModels, ws);
@@ -34,6 +39,7 @@ function addAuralTestsToWb(
   wb: WorkBook,
   auralTests: AuralTest[],
   auralRoomCount: number,
+  students: Student[],
   day: number
 ) {
   if (!auralTests.length || !auralTests[0].students.length) return;
@@ -42,7 +48,7 @@ function addAuralTestsToWb(
     if (!rowsByRoom[i % auralRoomCount]) rowsByRoom[i % auralRoomCount] = [];
     rowsByRoom[i % auralRoomCount].push({ Time: test.time, Level: test.level });
     test.students.forEach((student) => {
-      rowsByRoom[i % auralRoomCount].push(mapToFileModel(student));
+      rowsByRoom[i % auralRoomCount].push(mapToFileModel(students.find((x) => x.id === student)));
     });
   });
   rowsByRoom.forEach((room, i) => {
@@ -95,10 +101,10 @@ function getAuralTestRoom(
   auralTestsDay2: AuralTest[],
   auralRoomCount: number
 ) {
-  let index = auralTestsDay1.findIndex((x) => x.students.find((y) => y.id === student.id));
+  let index = auralTestsDay1.findIndex((x) => x.students.find((y) => y === student.id));
   if (index >= 0) return (index % auralRoomCount) + 1;
 
-  index = auralTestsDay2.findIndex((x) => x.students.find((y) => y.id === student.id));
+  index = auralTestsDay2.findIndex((x) => x.students.find((y) => y === student.id));
   if (index >= 0) return (index % auralRoomCount) + 1;
 }
 
@@ -117,15 +123,15 @@ function exportToFile(
     students.map((x) => ({
       ...x,
       performanceRoom: [...performanceRoomsDay1, ...performanceRoomsDay2].find((y) =>
-        y.performances.find((z) => z.student.id === x.id)
+        y.performances.find((z) => z.student === x.id)
       )?.id,
       auralTestRoom: getAuralTestRoom(x, auralTestsDay1, auralTestsDay2, auralRoomCount),
     }))
   );
-  addPerformanceRoomsToWb(wb, performanceRoomsDay1, 0);
-  addPerformanceRoomsToWb(wb, performanceRoomsDay2, 1);
-  addAuralTestsToWb(wb, auralTestsDay1, auralRoomCount, 0);
-  addAuralTestsToWb(wb, auralTestsDay2, auralRoomCount, 1);
+  addPerformanceRoomsToWb(wb, performanceRoomsDay1, students, 0);
+  addPerformanceRoomsToWb(wb, performanceRoomsDay2, students, 1);
+  addAuralTestsToWb(wb, auralTestsDay1, auralRoomCount, students, 0);
+  addAuralTestsToWb(wb, auralTestsDay2, auralRoomCount, students, 1);
 
   writeFileXLSX(wb, fileName);
 }

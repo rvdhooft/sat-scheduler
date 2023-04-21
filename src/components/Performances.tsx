@@ -1,13 +1,12 @@
 import { Box, Typography } from '@mui/material';
 import { PerformanceRoom } from '../models';
 import PerformanceRoomTable from './PerformanceRoom';
+import { useAppStore } from '../store/useAppStore';
 
-interface Props {
-  performanceRooms: PerformanceRoom[];
-  updatePerformances: (room: PerformanceRoom) => void;
-}
+const Performances = () => {
+  const performanceRooms = useAppStore((state) => state.getPerformanceRoomsForDay());
+  const updatePerformances = useAppStore((state) => state.updatePerformances);
 
-const Performances = ({ performanceRooms, updatePerformances }: Props) => {
   if (!performanceRooms.length || !performanceRooms[0].performances.length)
     return <Typography>None</Typography>;
 

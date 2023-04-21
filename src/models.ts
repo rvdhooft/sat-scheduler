@@ -40,12 +40,12 @@ export interface PerformanceRoom {
 
 export interface SatPerformance {
   time: Date;
-  student: Student;
+  student: string;
 }
 
 export interface AuralTest {
   time: Date;
-  students: Student[];
+  students: string[];
   level?: string;
 }
 

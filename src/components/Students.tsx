@@ -1,18 +1,17 @@
 import { Typography, Box } from '@mui/material';
 import { compareAsc, differenceInMinutes, isBefore } from 'date-fns';
-import { useSatParams } from '../contexts/paramContext';
 import { Student } from '../models';
 import formatTime from '../utils/formatTime';
 import getSiblings from '../utils/getSiblings';
 import { mapRequestToString } from '../utils/studentMappingUtils';
+import { useAppStore } from '../store/useAppStore';
 
-interface Props {
-  students: Student[];
-  hasSchedule: boolean;
-}
-
-const Students = ({ students, hasSchedule }: Props) => {
-  const { timeDifferenceMin, timeDifferenceMax, siblingStartMax } = useSatParams();
+const Students = () => {
+  const timeDifferenceMin = useAppStore((state) => state.timeDifferenceMin);
+  const timeDifferenceMax = useAppStore((state) => state.timeDifferenceMax);
+  const siblingStartMax = useAppStore((state) => state.siblingStartMax);
+  const students = useAppStore((state) => state.getStudentsForDay());
+  const hasSchedule = useAppStore((state) => state.auralTestsDay1.length > 0);
 
   if (!students.length) return <Typography>None</Typography>;
 

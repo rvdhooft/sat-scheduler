@@ -3,19 +3,18 @@ import { useEffect, useState } from 'react';
 import { AuralTest } from '../models';
 import AuralTestRow from './AuralTest';
 import update from 'immutability-helper';
+import { useAppStore } from '../store/useAppStore';
 
-interface Props {
-  auralTests: AuralTest[];
-  updateAuralTests: (tests: AuralTest[]) => void;
-}
-
-const AuralTests = ({ auralTests, updateAuralTests }: Props) => {
+const AuralTests = () => {
+  const auralTests = useAppStore((state) => state.getAuralTestsForDay());
+  const updateAuralTests = useAppStore((state) => state.updateAuralTests);
   const [tests, setTests] = useState<AuralTest[]>(auralTests);
+
   const testStudents = tests
     .map((x) => x.students)
     .flat()
-    .reduce((result: any, b) => {
-      result[b.fullName] = (result[b.fullName] || 0) + 1;
+    .reduce((result: any, x: string) => {
+      result[x] = (result[x] || 0) + 1;
       return result;
     }, {});
   const duplicates = Object.keys(testStudents).filter((a) => testStudents[a] > 1);
@@ -28,7 +27,7 @@ const AuralTests = ({ auralTests, updateAuralTests }: Props) => {
 
   const move = (studentId: string, dragTestIndex: number, hoverTestIndex: number) => {
     setTests((prev) => {
-      const studentIndex = prev[dragTestIndex].students.findIndex((x) => studentId === x.id);
+      const studentIndex = prev[dragTestIndex].students.findIndex((x) => studentId === x);
       return update(prev, {
         [hoverTestIndex]: {
           students: { $push: [prev[dragTestIndex].students[studentIndex]] },

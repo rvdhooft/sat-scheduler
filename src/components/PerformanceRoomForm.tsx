@@ -1,4 +1,5 @@
-import update from 'immutability-helper';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import {
   Box,
   Checkbox,
@@ -13,11 +14,9 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { Dispatch } from 'react';
-import { PerformanceRoom, Level, Student } from '../models';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 import { TimePicker } from '@mui/x-date-pickers';
+import update from 'immutability-helper';
+import { useAppStore } from '../store/useAppStore';
 import formatTime from '../utils/formatTime';
 
 const ITEM_HEIGHT = 48;
@@ -32,19 +31,12 @@ const MenuProps = {
 };
 const FORM_COLUMN_WIDTH = '8.5rem';
 
-interface Props {
-  performanceRooms: PerformanceRoom[];
-  setPerformanceRooms: Dispatch<PerformanceRoom[]>;
-  levels: Level[];
-  students: Student[];
-}
+const PerformanceRoomForm = () => {
+  const performanceRooms = useAppStore((state) => state.getPerformanceRoomsForDay());
+  const setPerformanceRooms = useAppStore((state) => state.setPerformanceRooms);
+  const levels = useAppStore((state) => state.levels);
+  const students = useAppStore((state) => state.students);
 
-const PerformanceRoomForm = ({
-  performanceRooms,
-  setPerformanceRooms,
-  levels,
-  students,
-}: Props) => {
   if (!students.length) return null;
 
   const levelOptions = levels.map((x) => x.name);

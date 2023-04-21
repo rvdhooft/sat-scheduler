@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { PerformanceRoom, SatPerformance } from '../models';
 import PerformanceRow from './Performance';
 import update from 'immutability-helper';
+import { useAppStore } from '../store/useAppStore';
 
 interface Props {
   room: PerformanceRoom;
@@ -13,6 +14,7 @@ interface Props {
 
 const PerformanceRoomTable = ({ room, allRooms, updatePerformances, moveRooms }: Props) => {
   const [performances, setPerformances] = useState<SatPerformance[]>(room.performances);
+  const students = useAppStore((state) => state.students);
 
   useEffect(() => {
     setPerformances(room.performances);
@@ -30,9 +32,9 @@ const PerformanceRoomTable = ({ room, allRooms, updatePerformances, moveRooms }:
   };
 
   function getAlternateRooms(performance: SatPerformance): string[] {
-    return allRooms
-      .filter((x) => x.id !== room.id && x.levels.includes(performance.student.level))
-      .map((x) => x.id);
+    const level = students.find((x) => x.id === performance.student)?.level;
+    if (!level) return [];
+    return allRooms.filter((x) => x.id !== room.id && x.levels.includes(level)).map((x) => x.id);
   }
 
   return (
@@ -54,7 +56,7 @@ const PerformanceRoomTable = ({ room, allRooms, updatePerformances, moveRooms }:
         <tbody>
           {performances.map((p, j) => (
             <PerformanceRow
-              key={p.student.id}
+              key={p.student}
               index={j}
               performance={p}
               room={room}

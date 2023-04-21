@@ -24,7 +24,8 @@
     "react-drag-drop-files": "^2.3.7",
     "react-error-boundary": "^3.1.4",
     "uuid": "^9.0.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zustand": "^4.3.6"
   },
   "devDependencies": {
     "@types/react": "^18.0.17",

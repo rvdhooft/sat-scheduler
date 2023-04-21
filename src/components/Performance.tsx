@@ -1,16 +1,16 @@
-import type { Identifier, XYCoord } from 'dnd-core';
 import { Box, Typography } from '@mui/material';
 import { addHours, differenceInMinutes, isAfter, isBefore, isEqual } from 'date-fns';
+import type { Identifier, XYCoord } from 'dnd-core';
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
+import { shallow } from 'zustand/shallow';
 import { PerformanceRoom, SatPerformance, SchedulingRequest } from '../models';
+import { useAppStore } from '../store/useAppStore';
 import formatTime from '../utils/formatTime';
-import PerformanceMenu from './PerformanceMenu';
-import { useStudents } from '../contexts/studentContext';
 import getSiblings from '../utils/getSiblings';
-import { useSatParams } from '../contexts/paramContext';
 import isTimeDifferenceInRange from '../utils/isTimeDifferenceInRange';
 import { mapRequestToString } from '../utils/studentMappingUtils';
+import PerformanceMenu from './PerformanceMenu';
 
 interface Props {
   performance: SatPerformance;
@@ -37,14 +37,25 @@ const PerformanceRow = ({
   commitMove,
 }: Props) => {
   const ref = useRef<HTMLTableRowElement>(null);
-  const { students } = useStudents();
-  const {
+  const [
+    students,
     morningStartTime,
     morningEndTime,
     afternoonEndTime,
     timeDifferenceMin,
     timeDifferenceMax,
-  } = useSatParams();
+  ] = useAppStore(
+    (state) => [
+      state.students,
+      state.morningStartTime,
+      state.morningEndTime,
+      state.afternoonEndTime,
+      state.timeDifferenceMin,
+      state.timeDifferenceMax,
+    ],
+    shallow
+  );
+  const student = students.find((x) => x.id === performance.student);
 
   const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
     accept: `performance-${room.id}`,
@@ -90,32 +101,32 @@ const PerformanceRow = ({
   const opacity = isDragging ? 0 : 1;
   drag(drop(ref));
 
-  function showPerformanceLevelError(p: SatPerformance, roomLevels: string[]) {
+  function showPerformanceLevelError(roomLevels: string[]) {
     if (!roomLevels) return;
-    if (!roomLevels.includes(p.student.level)) return true;
+    if (!roomLevels.includes(student.level)) return true;
   }
 
   function showPerformanceRequestError(p: SatPerformance) {
-    if (p.student.request === SchedulingRequest.AM && isAfter(p.time, morningEndTime)) return true;
+    if (student.request === SchedulingRequest.AM && isAfter(p.time, morningEndTime)) return true;
     if (
-      p.student.request === SchedulingRequest.EarlyAM &&
+      student.request === SchedulingRequest.EarlyAM &&
       isAfter(p.time, addHours(morningStartTime, 2))
     )
       return true;
     if (
-      p.student.request === SchedulingRequest.LateAM &&
+      student.request === SchedulingRequest.LateAM &&
       (isBefore(p.time, addHours(morningEndTime, -2)) || isAfter(p.time, morningEndTime))
     )
       return true;
-    if (p.student.request === SchedulingRequest.PM && isBefore(p.time, room.afternoonStartTime))
+    if (student.request === SchedulingRequest.PM && isBefore(p.time, room.afternoonStartTime))
       return true;
     if (
-      p.student.request === SchedulingRequest.EarlyPM &&
+      student.request === SchedulingRequest.EarlyPM &&
       isAfter(p.time, addHours(room.afternoonStartTime, 2))
     )
       return true;
     if (
-      p.student.request === SchedulingRequest.LatePM &&
+      student.request === SchedulingRequest.LatePM &&
       isBefore(p.time, addHours(afternoonEndTime, -2))
     )
       return true;
@@ -151,16 +162,16 @@ const PerformanceRow = ({
         </Typography>
       </td>
       <td>
-        <Typography component="span">{performance.student?.fullName}</Typography>
+        <Typography component="span">{student?.fullName}</Typography>
       </td>
       <td>
-        {performance.student.auralTestTime ? (
+        {student.auralTestTime ? (
           <Typography
             component="span"
             color={
               !isTimeDifferenceInRange(
-                performance.student?.performanceTime,
-                performance.student?.auralTestTime,
+                student?.performanceTime,
+                student?.auralTestTime,
                 timeDifferenceMin,
                 timeDifferenceMax
               )
@@ -168,14 +179,9 @@ const PerformanceRow = ({
                 : ''
             }
           >
-            {formatTime(performance.student.auralTestTime)} (
-            {performance.student.performanceTime &&
-              Math.abs(
-                differenceInMinutes(
-                  performance.student.auralTestTime,
-                  performance.student.performanceTime
-                )
-              )}
+            {formatTime(student.auralTestTime)} (
+            {student.performanceTime &&
+              Math.abs(differenceInMinutes(student.auralTestTime, student.performanceTime))}
             m)
           </Typography>
         ) : (
@@ -183,11 +189,8 @@ const PerformanceRow = ({
         )}
       </td>
       <td>
-        <Typography
-          component="span"
-          color={showPerformanceLevelError(performance, room.levels) ? 'error' : ''}
-        >
-          {performance.student?.level}
+        <Typography component="span" color={showPerformanceLevelError(room.levels) ? 'error' : ''}>
+          {student.level}
         </Typography>
       </td>
       <td>
@@ -195,11 +198,11 @@ const PerformanceRow = ({
           component="span"
           color={showPerformanceRequestError(performance) ? 'error' : ''}
         >
-          {mapRequestToString(performance.student?.request)}
+          {mapRequestToString(student?.request)}
         </Typography>
       </td>
       <td>
-        {getSiblings(performance.student, students).map((x) => (
+        {getSiblings(student, students).map((x) => (
           <div key={x.id}>
             {x.fullName} L{x.level} ({formatTime(x.performanceTime)} P,{' '}
             <Typography color={!x.auralTestTime ? 'error' : ''} component="span">

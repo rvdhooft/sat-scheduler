@@ -1,26 +1,36 @@
 import { Box, Typography } from '@mui/material';
-import { isAfter, addHours, isBefore } from 'date-fns';
+import { addHours, isAfter, isBefore, isEqual } from 'date-fns';
 import { useRef } from 'react';
 import { useDrag } from 'react-dnd';
-import { useSatParams } from '../contexts/paramContext';
-import { useStudents } from '../contexts/studentContext';
+import { shallow } from 'zustand/shallow';
 import { SchedulingRequest, Student } from '../models';
+import { useAppStore } from '../store/useAppStore';
 import formatTime from '../utils/formatTime';
 import getSiblings from '../utils/getSiblings';
 import { mapRequestToString } from '../utils/studentMappingUtils';
 
 interface Props {
-  student: Student;
+  studentId: string;
   index: number;
   testIndex: number;
   testLevel: string | undefined;
   testTime: Date;
 }
 
-const AuralTestStudent = ({ student, index, testIndex, testLevel, testTime }: Props) => {
+const AuralTestStudent = ({ studentId, index, testIndex, testLevel, testTime }: Props) => {
   const ref = useRef<HTMLParagraphElement>(null);
-  const { students } = useStudents();
-  const { morningStartTime, morningEndTime, afternoonStartTime, afternoonEndTime } = useSatParams();
+  const [students, morningStartTime, morningEndTime, afternoonStartTime, afternoonEndTime] =
+    useAppStore(
+      (state) => [
+        state.students,
+        state.morningStartTime,
+        state.morningEndTime,
+        state.afternoonStartTime,
+        state.afternoonEndTime,
+      ],
+      shallow
+    );
+  const student = students.find((x) => x.id === studentId);
 
   const [{ isDragging }, drag] = useDrag({
     type: 'aural-test-student',
@@ -68,6 +78,8 @@ const AuralTestStudent = ({ student, index, testIndex, testLevel, testTime }: Pr
     return false;
   }
 
+  if (!student) return null;
+
   return (
     <Box
       display="flex"
@@ -85,6 +97,14 @@ const AuralTestStudent = ({ student, index, testIndex, testLevel, testTime }: Pr
       <Typography sx={{ width: '10rem' }}>{student.fullName}</Typography>
       <Typography sx={{ width: '10rem' }}>
         {student.performanceTime ? formatTime(student.performanceTime) : ''}
+      </Typography>
+      <Typography
+        sx={{
+          width: '10rem',
+          color: !isEqual(student.auralTestTime, testTime) ? 'pink' : 'initial',
+        }}
+      >
+        {student.auralTestTime ? formatTime(student.auralTestTime) : ''}
       </Typography>
       <Typography
         sx={{ width: '3.5rem' }}
