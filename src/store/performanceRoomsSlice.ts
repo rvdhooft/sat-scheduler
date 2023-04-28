@@ -6,6 +6,8 @@ import {
 } from '../utils/performanceRoomDefaults';
 import reassignTimes from '../utils/reassignTimes';
 import { AppState, PerformanceRoomSlice } from './types';
+import getLevelsForDay from '../utils/getLevelsForDay';
+import assignRemainingAuralTests from '../utils/assignRemainingAuralTests';
 
 export const createPerformanceRoomsSlice: StateCreator<AppState, [], [], PerformanceRoomSlice> = (
   set,
@@ -43,6 +45,8 @@ const updatePerformances = (room: PerformanceRoom) => {
     const auralTests = [...state.getAuralTestsForDay()];
     const students = [...state.students];
     reassignTimes(room, auralTests, students, state);
+    const levelsForDay = getLevelsForDay(state.day, state);
+    assignRemainingAuralTests(students, auralTests, levelsForDay, state.timeDifferenceMin);
     return state.day === 0
       ? {
           auralTestsDay1: auralTests,

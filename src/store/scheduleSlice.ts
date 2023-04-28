@@ -1,6 +1,7 @@
-import { addMinutes, compareAsc, differenceInMinutes, isAfter, isBefore } from 'date-fns';
+import { addMinutes, compareAsc, isAfter, isBefore } from 'date-fns';
 import { StateCreator } from 'zustand';
 import { AuralTest, Level, PerformanceRoom, SchedulingRequest, Student } from '../models';
+import assignRemainingAuralTests from '../utils/assignRemainingAuralTests';
 import getLevelsForDay from '../utils/getLevelsForDay';
 import getTimeAllowance from '../utils/getTimeAllowance';
 import reassignTimes from '../utils/reassignTimes';
@@ -165,30 +166,7 @@ function scheduleStudentsForDay(
     reassignTimes(x, auralTests, students, state); // removes any gaps
   });
 
-  // Go back through those without aural test times
-  // Re-assign any unused aural test spots if that helps
-  // Otherwise just give them whatever is closest
-  for (const student of students.filter(
-    (x) => !x.auralTestTime && levelsForDay.includes(x.level)
-  )) {
-    if (!student.performanceTime) continue;
-
-    const auralsForLevelOrEmpty = auralTests.filter(
-      (x) =>
-        (x.level === student.level || !x.students.length) &&
-        Math.abs(differenceInMinutes(x.time, student.performanceTime!)) >= state.timeDifferenceMin
-    );
-    auralsForLevelOrEmpty.sort(
-      (a, b) =>
-        Math.abs(differenceInMinutes(a.time, student.performanceTime!)) -
-        Math.abs(differenceInMinutes(b.time, student.performanceTime!))
-    );
-    const closestAuralTest = auralsForLevelOrEmpty[0];
-    if (!closestAuralTest) return;
-    closestAuralTest.students.push(student.id);
-    student.auralTestTime = closestAuralTest.time;
-    closestAuralTest.level = student.level;
-  }
+  assignRemainingAuralTests(students, auralTests, levelsForDay, state.timeDifferenceMin);
 
   return [perfRooms, auralTests];
 }

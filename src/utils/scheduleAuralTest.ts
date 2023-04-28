@@ -24,8 +24,7 @@ function scheduleAuralTest(auralTests: AuralTest[], student: Student, state: App
     matches[0].students.push(student.id);
     student.auralTestTime = matches[0].time;
   } else {
-    auralTests[auralTests.length - 1].students.push(student.id);
-    student.auralTestTime = auralTests[auralTests.length - 1].time;
+    student.auralTestTime = null;
   }
 }
 
