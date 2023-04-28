@@ -101,25 +101,21 @@ const OptionFormFields = () => {
           label="Morning Start Time"
           value={morningStartTime}
           onChange={(val) => val && setMorningStartTime(val)}
-          renderInput={(params) => <TextField {...params} />}
         />
         <TimePicker
           label="Morning End Time"
           value={morningEndTime}
           onChange={(val) => val && setMorningEndTime(val)}
-          renderInput={(params) => <TextField {...params} />}
         />
         <TimePicker
           label="Afternoon Start Time"
           value={afternoonStartTime}
           onChange={(val) => val && setAfternoonStartTime(val)}
-          renderInput={(params) => <TextField {...params} />}
         />
         <TimePicker
           label="Afternoon End Time"
           value={afternoonEndTime}
           onChange={(val) => val && setAfternoonEndTime(val)}
-          renderInput={(params) => <TextField {...params} />}
         />
         <TextField
           label="Sibling Max Start Time Diff (min)"

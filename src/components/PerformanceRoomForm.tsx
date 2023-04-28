@@ -11,7 +11,6 @@ import {
   OutlinedInput,
   Select,
   SelectChangeEvent,
-  TextField,
   Typography,
 } from '@mui/material';
 import { TimePicker } from '@mui/x-date-pickers';
@@ -148,13 +147,13 @@ const PerformanceRoomForm = () => {
               label="Morning End Time"
               value={room.morningEndTime}
               onChange={(val) => handleMorningEndChange(val, i)}
-              renderInput={(params) => <TextField {...params} sx={{ width: FORM_COLUMN_WIDTH }} />}
+              slotProps={{ textField: { sx: { width: FORM_COLUMN_WIDTH } } }}
             />
             <TimePicker
               label="Afternoon Start Time"
               value={room.afternoonStartTime}
               onChange={(val) => handleAfternoonStartChange(val, i)}
-              renderInput={(params) => <TextField {...params} sx={{ width: FORM_COLUMN_WIDTH }} />}
+              slotProps={{ textField: { sx: { width: FORM_COLUMN_WIDTH } } }}
             />
             <Typography>
               <Box component="small" display="block" color="#666">
