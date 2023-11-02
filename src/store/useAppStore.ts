@@ -43,7 +43,6 @@ export const useAppStore = create<AppState, Mutators>(
           createAuralTestsSlice(set, ...rest).resetAuralTests();
           createPerformanceRoomsSlice(set, ...rest).resetPerformanceRooms();
         },
-        conflictCount: 0,
       }),
       {
         name: 'app-state',

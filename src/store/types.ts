@@ -57,6 +57,7 @@ export interface ParamsSlice {
 
 export interface ScheduleSlice {
   schedule: () => void;
+  getConflictCount: () => number;
 }
 
 export type AppState = AuralTestSlice &
@@ -68,7 +69,6 @@ export type AppState = AuralTestSlice &
     clear: () => void;
     generateTestStudents: () => void;
     importStudents: (students: Student[]) => void;
-    conflictCount: number;
   };
 
 export type Mutators = [['zustand/devtools', never], ['zustand/persist', AppState]];

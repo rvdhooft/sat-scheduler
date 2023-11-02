@@ -10,24 +10,24 @@ import scheduleAuralTest from '../utils/scheduleAuralTest';
 import { AppState, ScheduleSlice } from './types';
 import sortStudents from '../utils/sortStudents';
 
-export const createScheduleSlice: StateCreator<AppState, [], [], ScheduleSlice> = (set) => ({
+export const createScheduleSlice: StateCreator<AppState, [], [], ScheduleSlice> = (set, get) => ({
   schedule: () =>
     set((state) => {
       const students = [...state.students].sort(sortStudents([...state.students]));
       const [performanceRoomsDay1, auralTestsDay1] = scheduleStudentsForDay(0, students, state);
       const [performanceRoomsDay2, auralTestsDay2] = scheduleStudentsForDay(1, students, state);
-      const updates = {
+      return {
         performanceRoomsDay1,
         performanceRoomsDay2,
         auralTestsDay1,
         auralTestsDay2,
         students,
       };
-      return {
-        ...updates,
-        conflictCount: getConflictCount({ ...state, ...updates }),
-      };
     }),
+  getConflictCount: () => {
+    const state = get();
+    return getConflictCount(state);
+  },
 });
 
 function getConflictCount(state: AppState): number {
@@ -184,6 +184,7 @@ function getPerformanceTime(
     room.latestAfternoonTime = performanceTime;
     return performanceTime;
   }
+
   if (student.request === SchedulingRequest.EarlyPM || student.request === SchedulingRequest.PM) {
     return getNextAfternoonTime(room, timeAllowance, forceAdd);
   }
