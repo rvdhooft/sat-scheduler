@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { addHours, isAfter, isBefore, isEqual } from 'date-fns';
-import { useRef } from 'react';
+import { memo, useRef } from 'react';
 import { useDrag } from 'react-dnd';
 import { shallow } from 'zustand/shallow';
 import { SchedulingRequest, Student } from '../models';
@@ -130,4 +130,4 @@ const AuralTestStudent = ({ studentId, index, testIndex, testLevel, testTime }: 
   );
 };
 
-export default AuralTestStudent;
+export default memo(AuralTestStudent);

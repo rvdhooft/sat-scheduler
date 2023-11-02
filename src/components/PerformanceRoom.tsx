@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { PerformanceRoom, SatPerformance } from '../models';
 import PerformanceRow from './Performance';
 import update from 'immutability-helper';
@@ -74,4 +74,4 @@ const PerformanceRoomTable = ({ room, allRooms, updatePerformances, moveRooms }:
   );
 };
 
-export default PerformanceRoomTable;
+export default memo(PerformanceRoomTable);

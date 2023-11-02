@@ -2,6 +2,7 @@ import { Box, Typography } from '@mui/material';
 import { PerformanceRoom } from '../models';
 import PerformanceRoomTable from './PerformanceRoom';
 import { useAppStore } from '../store/useAppStore';
+import { memo } from 'react';
 
 const Performances = () => {
   const performanceRooms = useAppStore((state) => state.getPerformanceRoomsForDay());
@@ -40,4 +41,4 @@ const Performances = () => {
   );
 };
 
-export default Performances;
+export default memo(Performances);

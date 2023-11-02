@@ -1,4 +1,5 @@
 import { Tab, Tabs } from '@mui/material';
+import { memo } from 'react';
 
 interface Props {
   tab: number;
@@ -29,4 +30,4 @@ const VerticalTabs = ({ tab, setTab }: Props) => {
   );
 };
 
-export default VerticalTabs;
+export default memo(VerticalTabs);

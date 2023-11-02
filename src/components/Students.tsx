@@ -5,6 +5,7 @@ import formatTime from '../utils/formatTime';
 import getSiblings from '../utils/getSiblings';
 import { mapRequestToString } from '../utils/studentMappingUtils';
 import { useAppStore } from '../store/useAppStore';
+import { memo } from 'react';
 
 const Students = () => {
   const timeDifferenceMin = useAppStore((state) => state.timeDifferenceMin);
@@ -119,4 +120,4 @@ const Students = () => {
   );
 };
 
-export default Students;
+export default memo(Students);

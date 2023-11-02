@@ -4,6 +4,7 @@ import { read, utils } from 'xlsx';
 import { StudentFileModel } from '../models';
 import { useAppStore } from '../store/useAppStore';
 import { mapFromFileModels } from '../utils/studentMappingUtils';
+import { memo } from 'react';
 
 async function mapFileToStudents(file: File) {
   if (!file) return;
@@ -68,4 +69,4 @@ const FileUpload = () => {
   );
 };
 
-export default FileUpload;
+export default memo(FileUpload);

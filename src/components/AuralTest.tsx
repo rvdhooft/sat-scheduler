@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import type { Identifier, XYCoord } from 'dnd-core';
-import { useRef } from 'react';
+import { memo, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { AuralTest } from '../models';
 import formatTime from '../utils/formatTime';
@@ -89,4 +89,4 @@ const AuralTestRow = ({ test, index, move, commitMove }: Props) => {
   );
 };
 
-export default AuralTestRow;
+export default memo(AuralTestRow);

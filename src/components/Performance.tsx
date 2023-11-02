@@ -1,7 +1,7 @@
 import { Box, Typography } from '@mui/material';
 import { addHours, differenceInMinutes, isAfter, isBefore, isEqual } from 'date-fns';
 import type { Identifier, XYCoord } from 'dnd-core';
-import { useRef } from 'react';
+import { memo, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { shallow } from 'zustand/shallow';
 import { PerformanceRoom, SatPerformance, SchedulingRequest } from '../models';
@@ -221,4 +221,4 @@ const PerformanceRow = ({
   );
 };
 
-export default PerformanceRow;
+export default memo(PerformanceRow);

@@ -17,6 +17,7 @@ import { TimePicker } from '@mui/x-date-pickers';
 import update from 'immutability-helper';
 import { useAppStore } from '../store/useAppStore';
 import formatTime from '../utils/formatTime';
+import { memo } from 'react';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -225,4 +226,4 @@ const PerformanceRoomForm = () => {
   );
 };
 
-export default PerformanceRoomForm;
+export default memo(PerformanceRoomForm);

@@ -2,6 +2,7 @@ import { Box, Button, Tabs, Tab } from '@mui/material';
 import { useAppStore } from '../store/useAppStore';
 import exportToFile from '../utils/exportToFile';
 import { shallow } from 'zustand/shallow';
+import { memo } from 'react';
 
 const TabBar = () => {
   const [
@@ -72,4 +73,4 @@ const TabBar = () => {
   );
 };
 
-export default TabBar;
+export default memo(TabBar);

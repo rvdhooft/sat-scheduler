@@ -1,7 +1,7 @@
 import { Box, Button, TextField } from '@mui/material';
 import { TimePicker } from '@mui/x-date-pickers';
 import update from 'immutability-helper';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 import { useAppStore } from '../store/useAppStore';
 
@@ -150,4 +150,4 @@ const OptionFormFields = () => {
   );
 };
 
-export default OptionFormFields;
+export default memo(OptionFormFields);

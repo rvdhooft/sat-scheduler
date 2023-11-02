@@ -1,5 +1,5 @@
 import { IconButton, Menu, MenuItem } from '@mui/material';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 interface Props {
@@ -37,4 +37,4 @@ const PerformanceMenu = ({ alternateRooms, moveRooms }: Props) => {
   );
 };
 
-export default PerformanceMenu;
+export default memo(PerformanceMenu);

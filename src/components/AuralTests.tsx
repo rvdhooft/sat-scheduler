@@ -1,5 +1,5 @@
 import { Typography, Box } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { AuralTest } from '../models';
 import AuralTestRow from './AuralTest';
 import update from 'immutability-helper';
@@ -74,4 +74,4 @@ const AuralTests = () => {
   );
 };
 
-export default AuralTests;
+export default memo(AuralTests);
