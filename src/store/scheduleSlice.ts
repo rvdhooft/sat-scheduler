@@ -1,28 +1,115 @@
-import { addMinutes, compareAsc, isAfter, isBefore } from 'date-fns';
+import { addMinutes, compareAsc, differenceInMinutes, isAfter, isBefore, addHours } from 'date-fns';
 import { StateCreator } from 'zustand';
 import { AuralTest, Level, PerformanceRoom, SchedulingRequest, Student } from '../models';
 import assignRemainingAuralTests from '../utils/assignRemainingAuralTests';
 import getLevelsForDay from '../utils/getLevelsForDay';
+import getSiblings from '../utils/getSiblings';
 import getTimeAllowance from '../utils/getTimeAllowance';
 import reassignTimes from '../utils/reassignTimes';
 import scheduleAuralTest from '../utils/scheduleAuralTest';
 import { AppState, ScheduleSlice } from './types';
+import sortStudents from '../utils/sortStudents';
 
 export const createScheduleSlice: StateCreator<AppState, [], [], ScheduleSlice> = (set) => ({
   schedule: () =>
     set((state) => {
-      const students = [...state.students];
+      const students = [...state.students].sort(sortStudents([...state.students]));
       const [performanceRoomsDay1, auralTestsDay1] = scheduleStudentsForDay(0, students, state);
       const [performanceRoomsDay2, auralTestsDay2] = scheduleStudentsForDay(1, students, state);
-      return {
+      const updates = {
         performanceRoomsDay1,
         performanceRoomsDay2,
         auralTestsDay1,
         auralTestsDay2,
         students,
       };
+      return {
+        ...updates,
+        conflictCount: getConflictCount({ ...state, ...updates }),
+      };
     }),
 });
+
+function getConflictCount(state: AppState): number {
+  let sum = 0;
+  state.students.forEach((s) => {
+    if (hasIndividualTimeDiffError(s, state)) sum += 1;
+
+    if (hasSiblingStartTimeDiffError(s, state)) sum += 1;
+
+    if (hasPerformanceRequestError(s, state)) sum += 1;
+  });
+  return sum;
+}
+
+function hasPerformanceRequestError(student: Student, state: AppState) {
+  if (
+    student.request === SchedulingRequest.AM &&
+    isAfter(student.performanceTime, state.morningEndTime)
+  )
+    return true;
+  if (
+    student.request === SchedulingRequest.EarlyAM &&
+    isAfter(student.performanceTime, addHours(state.morningStartTime, 2))
+  )
+    return true;
+  if (
+    student.request === SchedulingRequest.LateAM &&
+    (isBefore(student.performanceTime, addHours(state.morningEndTime, -2)) ||
+      isAfter(student.performanceTime, state.morningEndTime))
+  )
+    return true;
+  if (
+    student.request === SchedulingRequest.PM &&
+    isBefore(student.performanceTime, state.afternoonStartTime)
+  )
+    return true;
+  if (
+    student.request === SchedulingRequest.EarlyPM &&
+    isAfter(student.performanceTime, addHours(state.afternoonStartTime, 2))
+  )
+    return true;
+  if (
+    student.request === SchedulingRequest.LatePM &&
+    isBefore(student.performanceTime, addHours(state.afternoonEndTime, -2))
+  )
+    return true;
+
+  return false;
+}
+
+function hasSiblingStartTimeDiffError(student: Student, state: AppState) {
+  const diff = getSiblingStartDiffMax(student, state);
+  return diff && diff > state.siblingStartMax;
+}
+
+function hasIndividualTimeDiffError(student: Student, state: AppState) {
+  if (!student.auralTestTime || !student.performanceTime) return false;
+  const timeDiff = Math.abs(differenceInMinutes(student.auralTestTime, student.performanceTime));
+
+  // Time between aural & performance must be between min and max
+  if (timeDiff < state.timeDifferenceMin || timeDiff > state.timeDifferenceMax) return true;
+}
+
+function getSiblingStartDiffMax(student: Student, state: AppState) {
+  if (!student.siblings || !student.performanceTime || !student.auralTestTime) return null;
+
+  const startTime = isBefore(student.auralTestTime, student.performanceTime)
+    ? student.auralTestTime
+    : student.performanceTime;
+  const siblings = getSiblings(student, state.students);
+  const siblingStartTimes = siblings
+    .filter((sib) => sib.auralTestTime && sib.performanceTime)
+    .map((sib) =>
+      isBefore(sib.auralTestTime!, sib.performanceTime!) ? sib.auralTestTime : sib.performanceTime
+    );
+  if (!siblingStartTimes.length) return null;
+
+  const allTimesSorted = [startTime, ...siblingStartTimes].sort((a, b) => compareAsc(a!, b!));
+  return Math.abs(
+    differenceInMinutes(allTimesSorted[0]!, allTimesSorted[allTimesSorted.length - 1]!)
+  );
+}
 
 function createAuralTests(auralTestLevels: string[], state: AppState): AuralTest[] {
   let levelIndex = 0;

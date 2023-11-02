@@ -55,10 +55,10 @@ export interface Level {
 }
 
 export enum SchedulingRequest {
-  AM = 1,
-  PM = 2,
-  LatePM = 3,
-  LateAM = 4,
-  EarlyPM = 5,
+  AM = 3,
+  PM = 1,
+  LatePM = 2,
+  LateAM = 5,
+  EarlyPM = 4,
   EarlyAM = 6,
 }
