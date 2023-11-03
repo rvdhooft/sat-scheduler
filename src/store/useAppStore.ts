@@ -18,49 +18,54 @@ import { createStudentsSlice } from './studentsSlice';
 import { AppState } from './types';
 
 export const useAppStore = create<AppState>()(
-  temporal(
-    (set, ...rest) => ({
-      ...createAuralTestsSlice(set, ...rest),
-      ...createPerformanceRoomsSlice(set, ...rest),
-      ...createStudentsSlice(set, ...rest),
-      ...createDaySlice(set, ...rest),
-      ...createParamsSlice(set, ...rest),
-      ...createScheduleSlice(set, ...rest),
-      clear: () =>
-        set({
-          ...defaultParams,
-          students: [],
-          auralTestsDay1: [],
-          auralTestsDay2: [],
-          performanceRoomsDay1: createDefaultPerformanceRoomsDay1(),
-          performanceRoomsDay2: createDefaultPerformanceRoomsDay2(),
-        }),
-      generateTestStudents: () => {
-        createStudentsSlice(set, ...rest).generateTestStudents();
-        createAuralTestsSlice(set, ...rest).resetAuralTests();
-        createPerformanceRoomsSlice(set, ...rest).resetPerformanceRooms();
-      },
-      importStudents: (students: Student[]) => {
-        createStudentsSlice(set, ...rest).importStudents(students);
-        createAuralTestsSlice(set, ...rest).resetAuralTests();
-        createPerformanceRoomsSlice(set, ...rest).resetPerformanceRooms();
-      },
-    }),
-    {
-      partialize: (state) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { day, ...rest } = state; // ignore day change
-        return rest;
-      },
-      equality: deepEqual,
-      wrapTemporal: (storeInitializer) =>
-        devtools(
+  persist(
+    temporal(
+      (set, ...rest) => ({
+        ...createAuralTestsSlice(set, ...rest),
+        ...createPerformanceRoomsSlice(set, ...rest),
+        ...createStudentsSlice(set, ...rest),
+        ...createDaySlice(set, ...rest),
+        ...createParamsSlice(set, ...rest),
+        ...createScheduleSlice(set, ...rest),
+        clear: () =>
+          set({
+            ...defaultParams,
+            students: [],
+            auralTestsDay1: [],
+            auralTestsDay2: [],
+            performanceRoomsDay1: createDefaultPerformanceRoomsDay1(),
+            performanceRoomsDay2: createDefaultPerformanceRoomsDay2(),
+          }),
+        generateTestStudents: () => {
+          createStudentsSlice(set, ...rest).generateTestStudents();
+          createAuralTestsSlice(set, ...rest).resetAuralTests();
+          createPerformanceRoomsSlice(set, ...rest).resetPerformanceRooms();
+        },
+        importStudents: (students: Student[]) => {
+          createStudentsSlice(set, ...rest).importStudents(students);
+          createAuralTestsSlice(set, ...rest).resetAuralTests();
+          createPerformanceRoomsSlice(set, ...rest).resetPerformanceRooms();
+        },
+      }),
+      {
+        partialize: (state) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { day, ...rest } = state; // ignore day change
+          return rest;
+        },
+        equality: deepEqual,
+        wrapTemporal: (storeInitializer) =>
+          // devtools(
           persist(storeInitializer, {
-            name: 'app-state',
+            name: 'app-state-temporal',
             storage: storageWithDateTimeReviver as PersistStorage<AppState>,
-          })
-        ),
-      limit: 50,
+          }),
+        // ),
+      }
+    ),
+    {
+      name: 'app-state',
+      storage: storageWithDateTimeReviver as PersistStorage<AppState>,
     }
   )
 );
