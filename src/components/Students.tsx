@@ -11,7 +11,6 @@ const Students = () => {
   const timeDifferenceMin = useAppStore((state) => state.timeDifferenceMin);
   const timeDifferenceMax = useAppStore((state) => state.timeDifferenceMax);
   const siblingStartMax = useAppStore((state) => state.siblingStartMax);
-  const getConflictCount = useAppStore((state) => state.getConflictCount);
   const students = useAppStore((state) => state.getStudentsForDay());
   const hasSchedule = useAppStore((state) => state.auralTestsDay1.length > 0);
 
@@ -61,9 +60,6 @@ const Students = () => {
         </Typography>
         <Typography color={students.filter((x) => !x.auralTestTime).length ? 'error' : ''}>
           Total w/o Aural Test Time: {students.filter((x) => !x.auralTestTime).length}
-        </Typography>
-        <Typography color={getConflictCount() > 0 ? 'error' : ''}>
-          Conflicts: {getConflictCount() || 0}
         </Typography>
       </Box>
       <table>

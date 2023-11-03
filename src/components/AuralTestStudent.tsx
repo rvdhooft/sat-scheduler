@@ -2,7 +2,6 @@ import { Box, Typography } from '@mui/material';
 import { addHours, isAfter, isBefore, isEqual } from 'date-fns';
 import { memo, useRef } from 'react';
 import { useDrag } from 'react-dnd';
-import { shallow } from 'zustand/shallow';
 import { SchedulingRequest, Student } from '../models';
 import { useAppStore } from '../store/useAppStore';
 import formatTime from '../utils/formatTime';
@@ -20,16 +19,13 @@ interface Props {
 const AuralTestStudent = ({ studentId, index, testIndex, testLevel, testTime }: Props) => {
   const ref = useRef<HTMLParagraphElement>(null);
   const [students, morningStartTime, morningEndTime, afternoonStartTime, afternoonEndTime] =
-    useAppStore(
-      (state) => [
-        state.students,
-        state.morningStartTime,
-        state.morningEndTime,
-        state.afternoonStartTime,
-        state.afternoonEndTime,
-      ],
-      shallow
-    );
+    useAppStore((state) => [
+      state.students,
+      state.morningStartTime,
+      state.morningEndTime,
+      state.afternoonStartTime,
+      state.afternoonEndTime,
+    ]);
   const student = students.find((x) => x.id === studentId);
 
   const [{ isDragging }, drag] = useDrag({

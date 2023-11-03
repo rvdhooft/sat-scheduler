@@ -3,7 +3,6 @@ import { addHours, differenceInMinutes, isAfter, isBefore, isEqual } from 'date-
 import type { Identifier, XYCoord } from 'dnd-core';
 import { memo, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { shallow } from 'zustand/shallow';
 import { PerformanceRoom, SatPerformance, SchedulingRequest } from '../models';
 import { useAppStore } from '../store/useAppStore';
 import formatTime from '../utils/formatTime';
@@ -44,17 +43,14 @@ const PerformanceRow = ({
     afternoonEndTime,
     timeDifferenceMin,
     timeDifferenceMax,
-  ] = useAppStore(
-    (state) => [
-      state.students,
-      state.morningStartTime,
-      state.morningEndTime,
-      state.afternoonEndTime,
-      state.timeDifferenceMin,
-      state.timeDifferenceMax,
-    ],
-    shallow
-  );
+  ] = useAppStore((state) => [
+    state.students,
+    state.morningStartTime,
+    state.morningEndTime,
+    state.afternoonEndTime,
+    state.timeDifferenceMin,
+    state.timeDifferenceMax,
+  ]);
   const student = students.find((x) => x.id === performance.student);
 
   const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
