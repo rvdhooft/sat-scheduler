@@ -38,7 +38,7 @@ const FileUpload = () => {
           minWidth: '23rem',
           alignItems: 'start',
         },
-        '& label > div': {
+        '& label span': {
           mt: 1,
           ml: 0.5,
         },
@@ -56,7 +56,7 @@ const FileUpload = () => {
           right: 0,
           py: 2,
           px: 4,
-          zIndex: 1,
+          zIndex: 0,
         }}
       >
         Expected Columns:
