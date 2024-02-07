@@ -95,14 +95,6 @@ const AuralTestStudent = ({ studentId, index, testIndex, testLevel, testTime }: 
         {student.performanceTime ? formatTime(student.performanceTime) : ''}
       </Typography>
       <Typography
-        sx={{
-          width: '10rem',
-          color: !isEqual(student.auralTestTime, testTime) ? 'pink' : 'initial',
-        }}
-      >
-        {student.auralTestTime ? formatTime(student.auralTestTime) : ''}
-      </Typography>
-      <Typography
         sx={{ width: '3.5rem' }}
         color={student.level !== testLevel ? 'error' : 'inherit'}
       >
