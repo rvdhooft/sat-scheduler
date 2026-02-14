@@ -22,7 +22,7 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.3.1",
-    "react-drag-drop-files": "^2.3.10",
+    "react-drag-drop-files": "^3.1.0",
     "react-error-boundary": "^4.0.13",
     "uuid": "^13.0.0",
     "xlsx": "^0.18.5",
