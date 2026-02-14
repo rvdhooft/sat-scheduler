@@ -61,7 +61,7 @@ const OptionFormFields = () => {
         display="flex"
         flexWrap="wrap"
         gap={2}
-        sx={{ '& .MuiInputBase-root': { minWidth: '258.8px' } }}
+        sx={{ '& .MuiFormControl-root': { minWidth: '258.8px' } }}
       >
         <TextField
           label="Aural Test Room Count"
